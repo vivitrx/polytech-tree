@@ -1,6 +1,7 @@
 import './style.css'
 import * as THREE from 'three'
-import { TECHS, TECH_BY_ID, ERA_INFO, ERA_COUNT, CATEGORY_NAMES, CATEGORY_COUNT, CATEGORY_HEX } from './data'
+import { TECHS, TECH_BY_ID, ERA_INFO, ERA_COUNT, CATEGORY_NAMES, CATEGORY_COUNT, CATEGORY_HEX, CATEGORY_GROUPS, GROUP_NAMES, YEAR_BASIS_LABEL } from './data'
+import type { TechNode } from './data'
 import { layoutTower } from './layout'
 import { createScene } from './scene'
 import { PolyhedraField, facesOf } from './polyhedra'
@@ -43,10 +44,12 @@ const rig = new CameraRig(camera, renderer.domElement, eraRadii, eraY, towerHeig
 const legend = document.getElementById('legend')!
 legend.innerHTML = `
   <div class="lg-title">领域图例</div>
-  ${CATEGORY_NAMES.map((name, i) => `
-    <div class="lg-item">
-      <span class="lg-dot" style="background:${CATEGORY_HEX[i]};color:${CATEGORY_HEX[i]}"></span>${name}
-    </div>`).join('')}
+  ${['A', 'B', 'C', 'D'].map(g => `
+    <div class="lg-group">${GROUP_NAMES[g]}</div>
+    ${CATEGORY_NAMES.map((name, i) => CATEGORY_GROUPS[i] === g ? `
+      <div class="lg-item">
+        <span class="lg-dot" style="background:${CATEGORY_HEX[i]};color:${CATEGORY_HEX[i]}"></span>${name}
+      </div>` : '').join('')}`).join('')}
   <div class="lg-sep"></div>
   <div class="lg-title">形状 = 重要度（面数）</div>
   <div class="lg-item">20 面 基石</div>
@@ -61,7 +64,34 @@ legend.innerHTML = `
     <span id="labelLimitValue">100</span>
   </div>
   <div class="lg-hint">按到相机距离显示最近的名称</div>
+  <div class="lg-sep"></div>
+  <div class="lg-title">副轴 kind（规范 §3：筛选与文案）</div>
+  <div class="lg-kinds" id="kindFilter"></div>
+  <div class="lg-hint">点选即筛选：只压暗与让出名称名额，不动节点位置</div>
 `
+
+// ───── `kind` 副轴筛选（§3；只改颜色与名称名额，不改布局） ─────
+const kindFilter = document.getElementById('kindFilter')!
+const KINDS = ['原理', '工艺', '器物', '制度', '媒介'] as const
+const kindCount = KINDS.map(k => placed.filter(p => p.node.kind === k).length)
+const activeKinds = new Set<string>()
+kindFilter.innerHTML = KINDS.map((k, i) =>
+  `<button class="lg-kind" data-kind="${k}">${k}<b>${kindCount[i]}</b></button>`).join('')
+function applyKindFilter() {
+  const keep = activeKinds.size
+    ? (idx: number) => activeKinds.has(placed[idx].node.kind)
+    : null
+  field.setFilter(keep)
+  nameLabels.setFilter(keep)
+  kindFilter.querySelectorAll('.lg-kind').forEach(el =>
+    el.classList.toggle('on', activeKinds.has((el as HTMLElement).dataset.kind!)))
+}
+kindFilter.addEventListener('click', e => {
+  const k = (e.target as HTMLElement)?.dataset?.kind
+  if (!k) return
+  activeKinds.has(k) ? activeKinds.delete(k) : activeKinds.add(k)
+  applyKindFilter()
+})
 
 let labelLimit = 100
 const limitRange = document.getElementById('labelLimitRange') as HTMLInputElement
@@ -108,8 +138,14 @@ const raycaster = new THREE.Raycaster()
 const ndc = new THREE.Vector2()
 let hoverIdx: number | null = null
 
-function yearText(y: number): string {
-  return y < 0 ? `公元前 ${Math.abs(y)}` : `${y} 年`
+// 规范 §6：tooltip 同时显示"精确数值"与"真实精度"，避免把约定值读成确证
+function yearText(n: TechNode): string {
+  const b = YEAR_BASIS_LABEL[n.yearBasis] ?? { mark: '', approx: false }
+  const abs = Math.abs(n.year)
+  const core = n.year >= 0
+    ? `${n.year} 年`
+    : abs >= 10000 ? `前 ${(abs / 10000).toFixed(abs % 10000 === 0 ? 0 : 1)} 万年` : `公元前 ${abs} 年`
+  return `${b.approx ? '约' : ''}${core}${b.mark ? `（${b.mark}）` : ''}`
 }
 
 renderer.domElement.addEventListener('pointermove', e => {
@@ -135,8 +171,8 @@ renderer.domElement.addEventListener('pointermove', e => {
         .join('、')
       tooltip.innerHTML = `
         <div class="tt-name">${n.name}</div>
-        <div class="tt-dim">${n.nameEn !== n.name ? n.nameEn + ' · ' : ''}${yearText(n.year)}</div>
-        <div class="tt-dim">${ERA_INFO[n.era].name} · ${CATEGORY_NAMES[n.category]}</div>
+        <div class="tt-dim">${n.nameEn !== n.name ? n.nameEn + ' · ' : ''}${yearText(n)}</div>
+        <div class="tt-dim">${ERA_INFO[n.era].name} · ${CATEGORY_NAMES[n.category]}${n.kind ? ' · ' + n.kind : ''}</div>
         <div class="tt-dim">重要度 ${'★'.repeat(6 - n.importance)}${'☆'.repeat(n.importance - 1)}　${facesOf(n.importance)} 面</div>
         ${prereqNames ? `<div class="tt-dim">前置：${prereqNames}</div>` : ''}
         ${n.desc ? `<div class="tt-desc">${n.desc}</div>` : ''}

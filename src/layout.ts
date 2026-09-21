@@ -9,6 +9,9 @@ const SECTOR_TOTAL = (Math.PI * 2) / CATEGORY_COUNT
 const RADIUS_EXPONENT = 0.65       // >0.5：近代层面密度实际下降，视觉更疏朗
 const INNER_RATIO = 0.28           // 环空内径 / 外径
 const SECTOR_FILL = 0.84           // 扇区实际占用的角度比例
+// 面积目标占用率：按需求算层半径时留 20% 余量。圆形节点无法无缝铺满楔形，
+// 若解到 fill=1.00（旧行为：peak/K 正好等于面积预算），松弛迭代必然要把节点挤出扇区或彼此重叠。
+const SECTOR_FILL_TARGET = 0.8
 // 单个扇区可容纳的环空面积 = SECTOR_FILL/CATEGORY_COUNT · π·(R²−(INNER_RATIO·R)²) = K·R²
 const SECTOR_AREA_K = (SECTOR_FILL / CATEGORY_COUNT) * Math.PI * (1 - INNER_RATIO ** 2)
 
@@ -69,18 +72,20 @@ export function layoutTower(nodes: TechNode[]): TowerLayout {
     if (arr) arr.push(n)
     else buckets.set(key, [n])
   })
+  // 最挤扇区决定层半径：把该层按域分组，取各组需求面积的最大值
   const eraRadii = counts.map((c, era) => {
-    // 最挤扇区的加权需求：大节点（高重要度）占地方更多
-    let demand = 0
+    let peak = 0
     for (let cat = 0; cat < CATEGORY_COUNT; cat++) {
+      let demand = 0
       for (const n of buckets.get(`${era}:${cat}`) ?? []) {
         const r = 1.5 * importanceScale(n.importance)
         demand += Math.PI * (r * 1.15) ** 2
       }
+      peak = Math.max(peak, demand)
     }
     return Math.max(
       BASE_RADIUS * Math.pow(c / avgCount, RADIUS_EXPONENT),
-      Math.sqrt(demand / SECTOR_AREA_K)
+      Math.sqrt(peak / (SECTOR_AREA_K * SECTOR_FILL_TARGET))
     )
   })
 

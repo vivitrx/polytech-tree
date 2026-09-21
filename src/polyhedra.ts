@@ -30,9 +30,14 @@ export class PolyhedraField {
   private colors: THREE.Color[]
   private tmp = new THREE.Object3D()
   private white = new THREE.Color(0xffffff)
+  // 筛选（§3 的 kind 副轴）：不改布局、不改尺寸，只把非匹配实例的颜色压向背景
+  private keep: ((nodeIdx: number) => boolean) | null = null
+  private byIdx: PlacedNode[]
+  private dim = new THREE.Color(0x070a14)
 
   constructor(placed: PlacedNode[], colors: THREE.Color[]) {
     this.colors = colors
+    this.byIdx = placed
     const buckets: InstanceMeta[][] = Array.from({ length: LEVELS }, () => [])
     placed.forEach((p, globalIdx) => {
       const level = Math.min(LEVELS, Math.max(1, Math.round(p.node.importance))) - 1
@@ -71,28 +76,42 @@ export class PolyhedraField {
     }
   }
 
+  /** 设置/清除筛选（传 null 显示全部）；只改颜色，节点位置与大小不动 */
+  setFilter(keep: ((nodeIdx: number) => boolean) | null) {
+    this.keep = keep
+    for (let lv = 0; lv < this.meshes.length; lv++) {
+      const mesh = this.meshes[lv]
+      this.metas[lv].forEach((m, i) => mesh.setColorAt(i, this.colorOf(m.nodeIdx)))
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+    }
+  }
+
+  private colorOf(nodeIdx: number): THREE.Color {
+    const base = this.colors[this.byIdx[nodeIdx].node.category]
+    if (this.highlightIdx === nodeIdx) return this.white
+    if (this.keep && !this.keep(nodeIdx)) return base.clone().lerp(this.dim, 0.9)
+    return base
+  }
+
   /** 悬停高亮：nodeIdx 为全局索引，null 恢复 */
   highlight(nodeIdx: number | null) {
     if (this.highlightIdx === nodeIdx) return
-    if (this.highlightIdx !== null) this.setColorFor(node => node === this.highlightIdx, null)
     const prev = this.highlightIdx
     this.highlightIdx = nodeIdx
-    if (nodeIdx === null || prev === nodeIdx) return
-    this.setColorFor(node => node === nodeIdx, this.white)
+    for (const idx of [prev, nodeIdx]) {
+      if (idx !== null && idx !== undefined) this.repaint(idx)
+    }
   }
 
-  private setColorFor(match: (nodeIdx: number) => boolean, color: THREE.Color | null) {
+  private repaint(nodeIdx: number) {
     for (let lv = 0; lv < this.meshes.length; lv++) {
-      const mesh = this.meshes[lv]
       const meta = this.metas[lv]
-      let touched = false
       for (let i = 0; i < meta.length; i++) {
-        if (match(meta[i].nodeIdx)) {
-          mesh.setColorAt(i, color ?? this.colors[meta[i].placed.node.category])
-          touched = true
-        }
+        if (meta[i].nodeIdx !== nodeIdx) continue
+        this.meshes[lv].setColorAt(i, this.colorOf(nodeIdx))
+        if (this.meshes[lv].instanceColor) this.meshes[lv].instanceColor!.needsUpdate = true
+        return
       }
-      if (touched && mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     }
   }
 

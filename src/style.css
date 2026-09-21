@@ -44,6 +44,7 @@ body {
   opacity: 0.6;
   margin-bottom: 8px;
 }
+#legend .lg-group { font-size: 10px; opacity: 0.5; margin: 7px 0 2px; letter-spacing: 1px; }
 #legend .lg-item {
   display: flex;
   align-items: center;
@@ -71,6 +72,16 @@ body {
 }
 #legend .lg-limit span { min-width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
 #legend .lg-hint { font-size: 10px; opacity: 0.45; margin-top: 5px; }
+#legend .lg-kinds { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+#legend .lg-kind {
+  font: inherit; font-size: 10px; letter-spacing: 1px;
+  padding: 2px 6px; border-radius: 9px; cursor: pointer;
+  background: transparent; color: inherit; opacity: 0.6;
+  border: 1px solid var(--line);
+}
+#legend .lg-kind b { font-weight: 400; opacity: 0.55; margin-left: 3px; font-variant-numeric: tabular-nums; }
+#legend .lg-kind:hover { opacity: 0.9; }
+#legend .lg-kind.on { opacity: 1; border-color: currentColor; background: rgba(57, 203, 208, 0.14); }
 
 #toolbar {
   bottom: 18px;

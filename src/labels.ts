@@ -236,6 +236,8 @@ function buildNameAtlas(names: string[]): { pages: AtlasPage[]; slots: NameSlot[
 export function buildNameLabels(placed: PlacedNode[]): {
   meshes: THREE.Mesh[]
   update: (camera: THREE.PerspectiveCamera, limit: number, viewportW: number, viewportH: number) => void
+  /** 名称筛选：非匹配条目直接不参与"屏内最近 N 个"的选取 */
+  setFilter: (keep: ((nodeIdx: number) => boolean) | null) => void
 } {
   const names = placed.map(p => p.node.name)
   const { pages, slots } = buildNameAtlas(names)
@@ -274,6 +276,7 @@ export function buildNameLabels(placed: PlacedNode[]): {
   const lastCamPos = new THREE.Vector3(0, -1e9, 0) // 初始值保证首帧必更新
   let lastLimit = -1
   let lastW = 0, lastH = 0
+  let keep: ((nodeIdx: number) => boolean) | null = null
 
   const _v = new THREE.Vector3()
   const _proj = new THREE.Vector3()
@@ -302,6 +305,7 @@ export function buildNameLabels(placed: PlacedNode[]): {
     // 投影到 NDC，再按该标签的屏幕像素半宽/半高判定矩形是否整体在内
     order.length = 0
     for (let i = 0; i < placed.length; i++) {
+      if (keep && !keep(i)) continue
       const p = placed[i]
       // 相机空间深度：在相机背后或比近裁剪面近的剔除
       _proj.copy(p.position).applyMatrix4(camera.matrixWorldInverse)
@@ -342,7 +346,14 @@ export function buildNameLabels(placed: PlacedNode[]): {
     visAttrs.forEach(a => { a.needsUpdate = true })
   }
 
-  return { meshes, update }
+  return {
+    meshes,
+    update,
+    setFilter: (fn: ((nodeIdx: number) => boolean) | null) => {
+      keep = fn
+      lastCamPos.set(0, -1e9, 0) // 迫使下一帧重算可见集
+    },
+  }
 }
 
 // ───── 时代名标签：单字沿圆环外沿弧形排布（固定方位，双侧对称） ─────
