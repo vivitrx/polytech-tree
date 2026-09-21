@@ -85,8 +85,13 @@ The dataset lives in plain JSON files under `data/`, so adding a technology, an 
 
 ## Data provenance
 
-Technology names, dates and summaries were compiled from English Wikipedia articles (the `wikiEn` field records the article title for each entry) plus period references; `data/research/` holds the per-era working notes behind every batch. Treat the dataset as a curated educational index, not an authoritative chronology — dating the first instance of a technology is genuinely contested, and entries carry the year the compilation chose.
+Names, dates and article pointers were compiled from English Wikipedia (the `wikiEn` field records the article title an entry was checked against) plus period references; `data/research/` holds the per-era working notes behind every batch. Not every entry has a `wikiEn` yet — `npm run validate` lists the ones still missing it, so treat that field as an audit trail rather than a guarantee.
+
+The `desc` summaries are meant to be original Chinese writing, not translations of Wikipedia lead sentences. An audit in 2026-09 found that an early batch drifted into paraphrase-translation for a minority of entries, so the field is being rewritten repository-wide. Until that lands, treat the dataset as **all rights reserved** and do not reuse `desc` text.
+
+Treat the whole dataset as a curated educational index, not an authoritative chronology — dating the first instance of a technology is genuinely contested, and entries carry the year this compilation chose.
 
 ## License
 
-Not declared yet. Until a license file is added, all rights are reserved by the repository owner, including the `data/` JSON files.
+Planned: MIT for the code, CC BY 4.0 for the data. **Neither is in effect yet** — the permissive data license depends on the `desc` rewrite above, because text derived from Wikipedia is CC BY-SA and cannot be re-published under CC BY. Until `LICENSE` and `LICENSE-data.md` appear in this repository, all rights are reserved by the repository owner, including the `data/` JSON files.
+
