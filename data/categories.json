@@ -1,0 +1,74 @@
+[
+  {
+    "id": "materials",
+    "name": "材料·制造",
+    "nameEn": "Materials and Manufacturing",
+    "color": "#d97a3c",
+    "polyhedron": "cube",
+    "archimedean": false,
+    "subcategories": ["石器", "冶金", "化工", "纺织机械", "半导体工艺", "制造工艺"]
+  },
+  {
+    "id": "energy_power",
+    "name": "能源·动力",
+    "nameEn": "Energy and Power",
+    "color": "#e8c33d",
+    "polyhedron": "octahedron",
+    "archimedean": false,
+    "subcategories": ["火", "蒸汽", "电力", "核能", "发动机", "新能源"]
+  },
+  {
+    "id": "information",
+    "name": "信息·计算",
+    "nameEn": "Information and Computing",
+    "color": "#4ea3e8",
+    "polyhedron": "icosahedron",
+    "archimedean": false,
+    "subcategories": ["文字", "印刷", "电信", "计算机", "人工智能", "科学仪器", "软件与网络", "算法"]
+  },
+  {
+    "id": "life_medicine",
+    "name": "生命·医学",
+    "nameEn": "Life and Medicine",
+    "color": "#5fd07a",
+    "polyhedron": "dodecahedron",
+    "archimedean": false,
+    "subcategories": ["农业畜牧", "食品", "医药", "疫苗", "基因生物", "医学影像"]
+  },
+  {
+    "id": "transport_exploration",
+    "name": "交通·探索",
+    "nameEn": "Transport and Exploration",
+    "color": "#b57ee8",
+    "polyhedron": "tetrahedron",
+    "archimedean": false,
+    "subcategories": ["轮", "船", "陆路车辆", "航空", "航天", "导航"]
+  },
+  {
+    "id": "math_logic",
+    "name": "数学·逻辑",
+    "nameEn": "Mathematics and Logic",
+    "color": "#37c9c4",
+    "polyhedron": "truncated_icosahedron",
+    "archimedean": true,
+    "subcategories": ["数论与代数", "几何与拓扑", "分析学", "概率统计", "离散与组合", "数理逻辑", "应用与计算数学"]
+  },
+  {
+    "id": "physical_science",
+    "name": "物理科学",
+    "nameEn": "Physical Sciences",
+    "color": "#e8554e",
+    "polyhedron": "truncated_octahedron",
+    "archimedean": true,
+    "subcategories": ["力学", "电磁与光学", "热学与统计", "近代物理", "化学理论", "天文学", "地球科学"]
+  },
+  {
+    "id": "society",
+    "name": "社会·生活",
+    "nameEn": "Society and Daily Life",
+    "color": "#d06ab0",
+    "polyhedron": "cuboctahedron",
+    "archimedean": true,
+    "subcategories": ["经济金融", "法律与公共制度", "管理与组织", "心理语言社会", "文化体育", "日常生活"]
+  }
+]

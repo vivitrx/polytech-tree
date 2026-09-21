@@ -1,0 +1,445 @@
+{
+  "_comment": "核心科技 id 注册表：所有子 AGENT 引用以下 id 必须原样使用；合并时作为白名单校验 era/category 归属",
+  "coreIds": [
+    {
+      "id": "fire",
+      "era": "prehistory",
+      "category": "energy_power"
+    },
+    {
+      "id": "stone_tools",
+      "era": "prehistory",
+      "category": "materials"
+    },
+    {
+      "id": "clothing",
+      "era": "prehistory",
+      "category": "life_medicine"
+    },
+    {
+      "id": "bow_and_arrow",
+      "era": "prehistory",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "language",
+      "era": "prehistory",
+      "category": "information"
+    },
+    {
+      "id": "boat_canoe",
+      "era": "prehistory",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "agriculture",
+      "era": "neolithic",
+      "category": "life_medicine"
+    },
+    {
+      "id": "irrigation",
+      "era": "neolithic",
+      "category": "life_medicine"
+    },
+    {
+      "id": "pottery",
+      "era": "neolithic",
+      "category": "materials"
+    },
+    {
+      "id": "animal_husbandry",
+      "era": "neolithic",
+      "category": "life_medicine"
+    },
+    {
+      "id": "weaving_loom",
+      "era": "neolithic",
+      "category": "materials"
+    },
+    {
+      "id": "plow",
+      "era": "neolithic",
+      "category": "life_medicine"
+    },
+    {
+      "id": "fermentation",
+      "era": "neolithic",
+      "category": "life_medicine"
+    },
+    {
+      "id": "sail",
+      "era": "neolithic",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "cuneiform_writing",
+      "era": "bronze_age",
+      "category": "information"
+    },
+    {
+      "id": "bronze_metallurgy",
+      "era": "bronze_age",
+      "category": "materials"
+    },
+    {
+      "id": "wheel_axle",
+      "era": "bronze_age",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "mathematics_early",
+      "era": "bronze_age",
+      "category": "information"
+    },
+    {
+      "id": "glassmaking",
+      "era": "bronze_age",
+      "category": "materials"
+    },
+    {
+      "id": "chariot",
+      "era": "bronze_age",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "iron_smelting",
+      "era": "antiquity",
+      "category": "materials"
+    },
+    {
+      "id": "alphabet",
+      "era": "antiquity",
+      "category": "information"
+    },
+    {
+      "id": "papermaking",
+      "era": "antiquity",
+      "category": "information"
+    },
+    {
+      "id": "aqueduct",
+      "era": "antiquity",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "roman_concrete",
+      "era": "antiquity",
+      "category": "materials"
+    },
+    {
+      "id": "geometry_deductive",
+      "era": "antiquity",
+      "category": "math_logic"
+    },
+    {
+      "id": "seismoscope",
+      "era": "antiquity",
+      "category": "information"
+    },
+    {
+      "id": "gunpowder",
+      "era": "middle_ages",
+      "category": "materials"
+    },
+    {
+      "id": "compass_navigation",
+      "era": "middle_ages",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "woodblock_printing",
+      "era": "middle_ages",
+      "category": "information"
+    },
+    {
+      "id": "mechanical_clock",
+      "era": "middle_ages",
+      "category": "information"
+    },
+    {
+      "id": "paper_money",
+      "era": "middle_ages",
+      "category": "society"
+    },
+    {
+      "id": "blast_furnace",
+      "era": "middle_ages",
+      "category": "materials"
+    },
+    {
+      "id": "windmill",
+      "era": "middle_ages",
+      "category": "energy_power"
+    },
+    {
+      "id": "horse_collar",
+      "era": "middle_ages",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "movable_type_printing",
+      "era": "renaissance",
+      "category": "information"
+    },
+    {
+      "id": "telescope",
+      "era": "renaissance",
+      "category": "information"
+    },
+    {
+      "id": "microscope",
+      "era": "renaissance",
+      "category": "information"
+    },
+    {
+      "id": "heliocentric_model",
+      "era": "renaissance",
+      "category": "physical_science"
+    },
+    {
+      "id": "logarithm",
+      "era": "renaissance",
+      "category": "information"
+    },
+    {
+      "id": "barometer",
+      "era": "renaissance",
+      "category": "information"
+    },
+    {
+      "id": "calculus",
+      "era": "renaissance",
+      "category": "math_logic"
+    },
+    {
+      "id": "steam_engine",
+      "era": "industrial",
+      "category": "energy_power"
+    },
+    {
+      "id": "spinning_jenny",
+      "era": "industrial",
+      "category": "materials"
+    },
+    {
+      "id": "power_loom",
+      "era": "industrial",
+      "category": "materials"
+    },
+    {
+      "id": "railway_locomotive",
+      "era": "industrial",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "telegraph",
+      "era": "industrial",
+      "category": "information"
+    },
+    {
+      "id": "photography",
+      "era": "industrial",
+      "category": "information"
+    },
+    {
+      "id": "bessemer_steel",
+      "era": "second_industrial",
+      "category": "materials"
+    },
+    {
+      "id": "electricity_generation",
+      "era": "second_industrial",
+      "category": "energy_power"
+    },
+    {
+      "id": "incandescent_lamp",
+      "era": "second_industrial",
+      "category": "energy_power"
+    },
+    {
+      "id": "telephone",
+      "era": "second_industrial",
+      "category": "information"
+    },
+    {
+      "id": "radio",
+      "era": "second_industrial",
+      "category": "information"
+    },
+    {
+      "id": "internal_combustion_engine",
+      "era": "second_industrial",
+      "category": "energy_power"
+    },
+    {
+      "id": "automobile",
+      "era": "second_industrial",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "airplane",
+      "era": "second_industrial",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "assembly_line",
+      "era": "second_industrial",
+      "category": "materials"
+    },
+    {
+      "id": "alternating_current",
+      "era": "second_industrial",
+      "category": "energy_power"
+    },
+    {
+      "id": "dynamite",
+      "era": "second_industrial",
+      "category": "materials"
+    },
+    {
+      "id": "refrigeration",
+      "era": "second_industrial",
+      "category": "life_medicine"
+    },
+    {
+      "id": "penicillin",
+      "era": "atomic_electronic",
+      "category": "life_medicine"
+    },
+    {
+      "id": "jet_engine",
+      "era": "atomic_electronic",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "nuclear_reactor",
+      "era": "atomic_electronic",
+      "category": "energy_power"
+    },
+    {
+      "id": "transistor",
+      "era": "atomic_electronic",
+      "category": "materials"
+    },
+    {
+      "id": "electronic_computer",
+      "era": "atomic_electronic",
+      "category": "information"
+    },
+    {
+      "id": "stored_program_computer",
+      "era": "atomic_electronic",
+      "category": "information"
+    },
+    {
+      "id": "dna_double_helix",
+      "era": "atomic_electronic",
+      "category": "life_medicine"
+    },
+    {
+      "id": "artificial_satellite",
+      "era": "atomic_electronic",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "rocket_engine",
+      "era": "atomic_electronic",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "oral_contraceptive",
+      "era": "atomic_electronic",
+      "category": "life_medicine"
+    },
+    {
+      "id": "laser",
+      "era": "atomic_electronic",
+      "category": "energy_power"
+    },
+    {
+      "id": "microprocessor",
+      "era": "information",
+      "category": "information"
+    },
+    {
+      "id": "personal_computer",
+      "era": "information",
+      "category": "information"
+    },
+    {
+      "id": "internet",
+      "era": "information",
+      "category": "information"
+    },
+    {
+      "id": "world_wide_web",
+      "era": "information",
+      "category": "information"
+    },
+    {
+      "id": "email",
+      "era": "information",
+      "category": "information"
+    },
+    {
+      "id": "mobile_phone",
+      "era": "information",
+      "category": "information"
+    },
+    {
+      "id": "fiber_optics_comm",
+      "era": "information",
+      "category": "information"
+    },
+    {
+      "id": "lcd_display",
+      "era": "information",
+      "category": "materials"
+    },
+    {
+      "id": "smartphone",
+      "era": "intelligent",
+      "category": "information"
+    },
+    {
+      "id": "deep_learning",
+      "era": "intelligent",
+      "category": "information"
+    },
+    {
+      "id": "crispr_gene_editing",
+      "era": "intelligent",
+      "category": "life_medicine"
+    },
+    {
+      "id": "reusable_rocket",
+      "era": "intelligent",
+      "category": "transport_exploration"
+    },
+    {
+      "id": "human_genome_project",
+      "era": "intelligent",
+      "category": "life_medicine"
+    },
+    {
+      "id": "cloud_computing",
+      "era": "intelligent",
+      "category": "information"
+    },
+    {
+      "id": "mrna_vaccine",
+      "era": "intelligent",
+      "category": "life_medicine"
+    },
+    {
+      "id": "large_language_model",
+      "era": "intelligent",
+      "category": "information"
+    },
+    {
+      "id": "electric_vehicle",
+      "era": "intelligent",
+      "category": "transport_exploration"
+    }
+  ]
+}

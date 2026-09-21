@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:," />
+  <title>人类科技树 · 3D 世界</title>
+</head>
+<body>
+  <div id="app"></div>
+
+  <div id="title" class="panel">
+    <h1>人类科技树</h1>
+    <small id="statLine"></small>
+  </div>
+
+  <div id="legend" class="panel"></div>
+
+  <div id="toolbar" class="panel">
+    <button id="btnTour">▶ 漫游动画</button>
+    <button id="btnReset">⟲ 重置视角</button>
+  </div>
+
+  <div id="hint">拖拽旋转 · 滚轮缩放 · 右键平移 · 悬停节点查看信息</div>
+
+  <div id="eraCaption"></div>
+  <div id="tooltip"></div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

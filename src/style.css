@@ -1,0 +1,167 @@
+:root {
+  --bg: #05070f;
+  --panel: rgba(10, 16, 32, 0.72);
+  --line: rgba(90, 140, 255, 0.22);
+  --text: #cfe0ff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+  color: var(--text);
+}
+
+#app canvas { display: block; }
+
+.panel {
+  position: fixed;
+  z-index: 10;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#title { top: 16px; left: 16px; padding: 10px 18px; }
+#title h1 {
+  margin: 0;
+  font-size: 17px;
+  letter-spacing: 4px;
+  color: #eaf2ff;
+  text-shadow: 0 0 12px rgba(90, 140, 255, 0.6);
+}
+#title small { font-size: 11px; opacity: 0.55; letter-spacing: 1px; }
+
+#legend { top: 16px; right: 16px; padding: 12px 16px; }
+#legend .lg-title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+#legend .lg-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin: 5px 0;
+}
+#legend .lg-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  box-shadow: 0 0 8px currentColor;
+}
+#legend .lg-sep { height: 1px; background: var(--line); margin: 10px 0; }
+#legend .lg-limit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+#legend .lg-limit input[type="range"] {
+  width: 104px;
+  accent-color: #5a8cff;
+  cursor: pointer;
+}
+#legend .lg-limit span { min-width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
+#legend .lg-hint { font-size: 10px; opacity: 0.45; margin-top: 5px; }
+
+#toolbar {
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+}
+#toolbar button {
+  background: rgba(60, 100, 200, 0.18);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 13px;
+  padding: 7px 16px;
+  border-radius: 7px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+#toolbar button:hover {
+  background: rgba(90, 140, 255, 0.32);
+  box-shadow: 0 0 14px rgba(90, 140, 255, 0.35);
+}
+#toolbar button.active {
+  background: rgba(90, 140, 255, 0.45);
+  color: #fff;
+}
+
+#hint {
+  position: fixed;
+  bottom: 20px;
+  left: 18px;
+  z-index: 10;
+  font-size: 12px;
+  opacity: 0.5;
+  letter-spacing: 1px;
+}
+
+#eraCaption {
+  position: fixed;
+  bottom: 16%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  font-size: 38px;
+  font-weight: bold;
+  letter-spacing: 10px;
+  color: #eaf2ff;
+  text-shadow: 0 0 24px rgba(90, 140, 255, 0.9), 0 0 60px rgba(90, 140, 255, 0.4);
+  opacity: 0;
+  transition: opacity 0.8s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+#eraCaption.show { opacity: 1; }
+#eraCaption .sub {
+  display: block;
+  text-align: center;
+  font-size: 15px;
+  font-weight: normal;
+  letter-spacing: 4px;
+  opacity: 0.7;
+  margin-top: 6px;
+}
+
+#tooltip {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  background: rgba(8, 12, 26, 0.9);
+  border: 1px solid rgba(90, 140, 255, 0.4);
+  border-radius: 7px;
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #dfe9ff;
+  opacity: 0;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+#tooltip.show { opacity: 1; }
+#tooltip .tt-name { font-size: 14px; font-weight: bold; color: #fff; }
+#tooltip .tt-dim { opacity: 0.65; }
+#tooltip .tt-desc {
+  max-width: 300px;
+  white-space: normal;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(90, 140, 255, 0.25);
+  opacity: 0.85;
+}
