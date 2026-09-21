@@ -2032,8 +2032,9 @@
     "id": "micrometer",
     "name": "螺旋测微器",
     "nameEn": "Micrometer",
-    "wikiEn": "Micrometer",
+    "wikiEn": "Micrometer (device)",
     "aliases": [
+      "Micrometer",
       "Palmer micrometer",
       "千分尺"
     ],

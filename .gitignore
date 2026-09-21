@@ -24,3 +24,22 @@ __pycache__/
 /data/era-recompute-report.json
 /data/von-*.json
 /data/jev-*.json
+/data/wikien-*-cache.json
+/data/quarantine-unverified.json
+/data/domain-relabel-*.json
+/data/isolated-links.json
+
+# 联网缓存与工作目录（派生物，可重跑；含取证与消歧扫描缓存）
+/data/_pipeline_tmp/
+/data/*-cache.json
+/data/disambiguation-hits.json
+/data/n02-worklist.json
+/data/n02-slices/
+/data/iso-worklist.json
+/data/resplit-report.json
+/data/mention-links.json
+/data/wiki-en-*.json
+/data/gate-features.json
+/data/dedupe-review-queue.json
+/data/boundary-decision-*.json
+/data/*-audit.json

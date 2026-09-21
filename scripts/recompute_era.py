@@ -7,14 +7,17 @@ F2+F3：era 一律由 year 查表生成，区间语义改为半开 [yearStart, y
   python scripts/recompute_era.py --apply    # 写 data/techs.json 并输出审计文件
 """
 import io
+import atomic
 import json
 import os
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TECHS = os.path.join(ROOT, "data", "techs.json")
-ERAS = os.path.join(ROOT, "data", "eras.json")
-REPORT = os.path.join(ROOT, "data", "era-recompute-report.json")
+DATA = os.path.join(ROOT, "data")
+TECHS = os.environ.get("ALLTECH_TECHS") or os.path.join(DATA, "techs.json")
+OUTDIR = os.environ.get("ALLTECH_OUT") or DATA
+ERAS = os.path.join(DATA, "eras.json")
+REPORT = os.path.join(OUTDIR, "era-recompute-report.json")
 
 
 def load(path):
@@ -86,8 +89,8 @@ def main():
         return
     for t in techs:
         t["era"] = derive(t["year"])
-    io.open(TECHS, "w", encoding="utf-8").write(dump_like(raw_techs, techs))
-    print(f"\n已写回 data/techs.json（{len(changes)} 条 era 更新）")
+    atomic.write_atomic(TECHS, dump_like(raw_techs, techs))
+    print(f"\n已写回 {TECHS}（{len(changes)} 条 era 更新）")
 
 
 if __name__ == "__main__":

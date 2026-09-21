@@ -9,87 +9,87 @@
     {
       "id": "stone_tools",
       "era": "prehistory",
-      "category": "materials"
+      "category": "manufacturing"
     },
     {
       "id": "clothing",
       "era": "prehistory",
-      "category": "life_medicine"
+      "category": "daily_life"
     },
     {
       "id": "bow_and_arrow",
       "era": "prehistory",
-      "category": "transport_exploration"
+      "category": "military"
     },
     {
       "id": "language",
       "era": "prehistory",
-      "category": "information"
+      "category": "culture_media"
     },
     {
       "id": "boat_canoe",
       "era": "prehistory",
-      "category": "transport_exploration"
+      "category": "transport"
     },
     {
       "id": "agriculture",
       "era": "neolithic",
-      "category": "life_medicine"
+      "category": "agriculture_food"
     },
     {
       "id": "irrigation",
       "era": "neolithic",
-      "category": "life_medicine"
+      "category": "agriculture_food"
     },
     {
       "id": "pottery",
       "era": "neolithic",
-      "category": "materials"
+      "category": "manufacturing"
     },
     {
       "id": "animal_husbandry",
       "era": "neolithic",
-      "category": "life_medicine"
+      "category": "agriculture_food"
     },
     {
       "id": "weaving_loom",
       "era": "neolithic",
-      "category": "materials"
+      "category": "manufacturing"
     },
     {
       "id": "plow",
       "era": "neolithic",
-      "category": "life_medicine"
+      "category": "agriculture_food"
     },
     {
       "id": "fermentation",
       "era": "neolithic",
-      "category": "life_medicine"
+      "category": "agriculture_food"
     },
     {
       "id": "sail",
       "era": "neolithic",
-      "category": "transport_exploration"
+      "category": "transport"
     },
     {
       "id": "cuneiform_writing",
       "era": "bronze_age",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "bronze_metallurgy",
       "era": "bronze_age",
-      "category": "materials"
+      "category": "manufacturing"
     },
     {
       "id": "wheel_axle",
       "era": "bronze_age",
-      "category": "transport_exploration"
+      "category": "transport"
     },
     {
       "id": "mathematics_early",
       "era": "bronze_age",
-      "category": "information"
+      "category": "education_knowledge"
     },
     {
       "id": "glassmaking",
@@ -99,27 +99,27 @@
     {
       "id": "chariot",
       "era": "bronze_age",
-      "category": "transport_exploration"
+      "category": "military"
     },
     {
       "id": "iron_smelting",
       "era": "antiquity",
-      "category": "materials"
+      "category": "manufacturing"
     },
     {
       "id": "alphabet",
       "era": "antiquity",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "papermaking",
       "era": "antiquity",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "aqueduct",
       "era": "antiquity",
-      "category": "transport_exploration"
+      "category": "construction"
     },
     {
       "id": "roman_concrete",
@@ -129,42 +129,42 @@
     {
       "id": "geometry_deductive",
       "era": "antiquity",
-      "category": "math_logic"
+      "category": "math_pure"
     },
     {
       "id": "seismoscope",
       "era": "antiquity",
-      "category": "information"
+      "category": "earth_space"
     },
     {
       "id": "gunpowder",
       "era": "middle_ages",
-      "category": "materials"
+      "category": "military"
     },
     {
       "id": "compass_navigation",
       "era": "middle_ages",
-      "category": "transport_exploration"
+      "category": "transport"
     },
     {
       "id": "woodblock_printing",
       "era": "middle_ages",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "mechanical_clock",
       "era": "middle_ages",
-      "category": "information"
+      "category": "physics"
     },
     {
       "id": "paper_money",
       "era": "middle_ages",
-      "category": "society"
+      "category": "economy"
     },
     {
       "id": "blast_furnace",
       "era": "middle_ages",
-      "category": "materials"
+      "category": "manufacturing"
     },
     {
       "id": "windmill",
@@ -174,42 +174,42 @@
     {
       "id": "horse_collar",
       "era": "middle_ages",
-      "category": "transport_exploration"
+      "category": "transport"
     },
     {
       "id": "movable_type_printing",
       "era": "renaissance",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "telescope",
       "era": "renaissance",
-      "category": "information"
+      "category": "earth_space"
     },
     {
       "id": "microscope",
       "era": "renaissance",
-      "category": "information"
+      "category": "physics"
     },
     {
       "id": "heliocentric_model",
       "era": "renaissance",
-      "category": "physical_science"
+      "category": "earth_space"
     },
     {
       "id": "logarithm",
       "era": "renaissance",
-      "category": "information"
+      "category": "algorithms_cs"
     },
     {
       "id": "barometer",
       "era": "renaissance",
-      "category": "information"
+      "category": "physics"
     },
     {
       "id": "calculus",
       "era": "renaissance",
-      "category": "math_logic"
+      "category": "math_pure"
     },
     {
       "id": "steam_engine",
@@ -219,32 +219,32 @@
     {
       "id": "spinning_jenny",
       "era": "industrial",
-      "category": "materials"
+      "category": "manufacturing"
     },
     {
       "id": "power_loom",
       "era": "industrial",
-      "category": "materials"
+      "category": "manufacturing"
     },
     {
       "id": "railway_locomotive",
       "era": "industrial",
-      "category": "transport_exploration"
+      "category": "transport"
     },
     {
       "id": "telegraph",
       "era": "industrial",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "photography",
       "era": "industrial",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "bessemer_steel",
-      "era": "second_industrial",
-      "category": "materials"
+      "era": "industrial",
+      "category": "manufacturing"
     },
     {
       "id": "electricity_generation",
@@ -259,32 +259,32 @@
     {
       "id": "telephone",
       "era": "second_industrial",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "radio",
       "era": "second_industrial",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "internal_combustion_engine",
-      "era": "second_industrial",
+      "era": "industrial",
       "category": "energy_power"
     },
     {
       "id": "automobile",
       "era": "second_industrial",
-      "category": "transport_exploration"
+      "category": "transport"
     },
     {
       "id": "airplane",
       "era": "second_industrial",
-      "category": "transport_exploration"
+      "category": "transport"
     },
     {
       "id": "assembly_line",
       "era": "second_industrial",
-      "category": "materials"
+      "category": "manufacturing"
     },
     {
       "id": "alternating_current",
@@ -293,13 +293,13 @@
     },
     {
       "id": "dynamite",
-      "era": "second_industrial",
-      "category": "materials"
+      "era": "industrial",
+      "category": "military"
     },
     {
       "id": "refrigeration",
       "era": "second_industrial",
-      "category": "life_medicine"
+      "category": "agriculture_food"
     },
     {
       "id": "penicillin",
@@ -309,7 +309,7 @@
     {
       "id": "jet_engine",
       "era": "atomic_electronic",
-      "category": "transport_exploration"
+      "category": "transport"
     },
     {
       "id": "nuclear_reactor",
@@ -319,17 +319,17 @@
     {
       "id": "transistor",
       "era": "atomic_electronic",
-      "category": "materials"
+      "category": "info_media"
     },
     {
       "id": "electronic_computer",
       "era": "atomic_electronic",
-      "category": "information"
+      "category": "computing_systems"
     },
     {
       "id": "stored_program_computer",
       "era": "atomic_electronic",
-      "category": "information"
+      "category": "computing_systems"
     },
     {
       "id": "dna_double_helix",
@@ -339,12 +339,12 @@
     {
       "id": "artificial_satellite",
       "era": "atomic_electronic",
-      "category": "transport_exploration"
+      "category": "space_exploration"
     },
     {
       "id": "rocket_engine",
       "era": "atomic_electronic",
-      "category": "transport_exploration"
+      "category": "space_exploration"
     },
     {
       "id": "oral_contraceptive",
@@ -354,57 +354,57 @@
     {
       "id": "laser",
       "era": "atomic_electronic",
-      "category": "energy_power"
+      "category": "manufacturing"
     },
     {
       "id": "microprocessor",
       "era": "information",
-      "category": "information"
+      "category": "computing_systems"
     },
     {
       "id": "personal_computer",
       "era": "information",
-      "category": "information"
+      "category": "computing_systems"
     },
     {
       "id": "internet",
       "era": "information",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "world_wide_web",
       "era": "information",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "email",
       "era": "information",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "mobile_phone",
       "era": "information",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "fiber_optics_comm",
       "era": "information",
-      "category": "information"
+      "category": "info_media"
     },
     {
       "id": "lcd_display",
       "era": "information",
-      "category": "materials"
+      "category": "info_media"
     },
     {
       "id": "smartphone",
       "era": "intelligent",
-      "category": "information"
+      "category": "computing_systems"
     },
     {
       "id": "deep_learning",
       "era": "intelligent",
-      "category": "information"
+      "category": "computing_systems"
     },
     {
       "id": "crispr_gene_editing",
@@ -414,7 +414,7 @@
     {
       "id": "reusable_rocket",
       "era": "intelligent",
-      "category": "transport_exploration"
+      "category": "space_exploration"
     },
     {
       "id": "human_genome_project",
@@ -424,7 +424,7 @@
     {
       "id": "cloud_computing",
       "era": "intelligent",
-      "category": "information"
+      "category": "computing_systems"
     },
     {
       "id": "mrna_vaccine",
@@ -434,12 +434,12 @@
     {
       "id": "large_language_model",
       "era": "intelligent",
-      "category": "information"
+      "category": "computing_systems"
     },
     {
       "id": "electric_vehicle",
       "era": "intelligent",
-      "category": "transport_exploration"
+      "category": "transport"
     }
   ]
 }
