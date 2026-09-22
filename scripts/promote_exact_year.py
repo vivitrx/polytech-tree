@@ -149,12 +149,14 @@ def main():
         if not (t.get("year_note") or "").strip():
             t["year_note"] = "年份可在该词条正文/信息框检得（脚本取证）"
     demoted = []
-    if deep:   # 只有跑过第 0 节源文二查，"未命中"才意味着导语与信息框都没有这个年份
-        for t in pool:
-            if t.get("year_basis") == "exact" and cache.get(t["id"]) == 2:
-                t["year_basis"] = "batch_asserted"
-                t["year_note"] = (t.get("year_note") or "") + "；词条导语与信息框均未检得该年份，降为批次断言"
-                demoted.append(t["id"])
+    # 缓存值 2 = "导语与第 0 节源文都查过、都没有这个年份"，由维护跑（--deep）产生。
+    # 降级判定本身不需要 --deep：缓存既然已判过，构建里就该照它降级，否则每次重建
+    # 又把批次自报的 exact 放回去，降级永远落不了地。
+    for t in pool:
+        if t.get("year_basis") == "exact" and cache.get(t["id"]) == 2:
+            t["year_basis"] = "batch_asserted"
+            t["year_note"] = (t.get("year_note") or "") + "；词条导语与信息框均未检得该年份，降为批次断言"
+            demoted.append(t["id"])
     print(f"升级为 exact：{len(promoted)} 条；降级为 batch_asserted：{len(demoted)} 条；"
           f"仍为 batch_asserted {sum(1 for t in pool if t.get('year_basis') == 'batch_asserted')} 条")
     audit = {"pool": len(pool), "promoted": len(promoted), "demoted": demoted,
