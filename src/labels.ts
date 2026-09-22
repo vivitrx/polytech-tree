@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { PlacedNode } from './layout'
+import { geomRadius, type PlacedNode } from './layout'
 import { ERA_INFO } from './data'
 
 // 文字标签：Canvas 图集 + 实例化 billboard（始终正对摄像机）
@@ -28,15 +28,16 @@ attribute float aAspect;
 attribute float aSize;
 attribute float aAlways;
 attribute float aOffset;
-attribute float aVisible;
+attribute float aVisible;   // 0=隐藏；(0,1] 同时作为不透明度（漫游中名称淡出）
 uniform float uFocal;   // 视频焦距（像素）：屏幕高 / (2·tan(fov/2))
 uniform float uMinPx;   // 常显标签的屏幕最小像素高（远处不缩成点）
+uniform float uMinAll;  // 漫游中所有名称的屏幕最小像素高（远处的名字也要能读）
 uniform float uMaxPx;   // 标签的屏幕最大像素高（贴近相机也不放大）
 uniform float uNear;    // 相机近裁剪面（锚点比它更近则隐藏）
 varying vec2 vUv;
 varying float vAlpha;
 void main() {
-  if (aVisible < 0.5) {
+  if (aVisible <= 0.001) {
     // 隐藏实例：挪到 NDC 视锥外，整三角形被裁剪
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     vAlpha = 0.0;
@@ -56,9 +57,8 @@ void main() {
   // 世界尺寸 → 自然屏幕像素；钳制在 [uMinPx, uMaxPx]：
   // 常显标签远处不小于 uMinPx，所有标签贴近相机也不超过 uMaxPx
   float naturalPx = aSize * uFocal / dist;
-  float pxSize = aAlways > 0.5
-    ? clamp(naturalPx, uMinPx, uMaxPx)
-    : min(naturalPx, uMaxPx);
+  float minPx = max(aAlways > 0.5 ? uMinPx : 0.0, uMinAll);
+  float pxSize = clamp(naturalPx, minPx, uMaxPx);
   float finalSize = pxSize * dist / uFocal;
   // 屏幕对齐 billboard：视图空间中相机永远看向 -Z，right=(1,0,0) up=(0,1,0)
   mv.xyz += vec3(corner.x * finalSize * aAspect, corner.y * finalSize, 0.0);
@@ -73,7 +73,7 @@ void main() {
   vUv = aUv.xy + vec2(corner.x + 0.5, 0.5 - corner.y) * aUv.zw;
   float fadeNear = mix(135.0, 430.0, aAlways);
   float fadeFar = mix(215.0, 650.0, aAlways);
-  vAlpha = 1.0 - smoothstep(fadeNear, fadeFar, dist);
+  vAlpha = aVisible * (1.0 - smoothstep(fadeNear, fadeFar, dist));
 }`
 
 const FRAG = `
@@ -132,6 +132,7 @@ export function createBillboards(datas: LabelData[], pages: AtlasPage[]): THREE.
         uMap: { value: page.texture },
         uFocal: { value: 700 },
         uMinPx: { value: 16 },
+        uMinAll: { value: 0 },
         uMaxPx: { value: 28 },
         uNear: { value: 0.1 },
       },
@@ -161,6 +162,11 @@ function makeCanvasTexture(canvas: HTMLCanvasElement): THREE.Texture {
 export function updateLabelFocal(viewportHeight: number, fovDeg: number) {
   const focal = viewportHeight / (2 * Math.tan((fovDeg * Math.PI) / 360))
   labelMaterials.forEach(m => { m.uniforms.uFocal.value = focal })
+}
+
+/** 漫游时给所有名称垫一个可读字号（0 = 恢复常态的按距离缩放） */
+export function setLabelMinPxAll(px: number) {
+  labelMaterials.forEach(m => { m.uniforms.uMinAll.value = px })
 }
 
 // ───── 科技名称图集（shelf pack：行式排布，条目宽度随文字长度变化） ─────
@@ -236,6 +242,10 @@ function buildNameAtlas(names: string[]): { pages: AtlasPage[]; slots: NameSlot[
 export function buildNameLabels(placed: PlacedNode[]): {
   meshes: THREE.Mesh[]
   update: (camera: THREE.PerspectiveCamera, limit: number, viewportW: number, viewportH: number) => void
+  /** 漫游：只点亮刚显现的科技名（带淡出 alpha） */
+  setTourNames: (count: number, idx: Int32Array, alpha: Float32Array) => void
+  /** 让下一次 update 无视静止缓存强制重算 */
+  invalidate: () => void
   /** 名称筛选：非匹配条目直接不参与"屏内最近 N 个"的选取 */
   setFilter: (keep: ((nodeIdx: number) => boolean) | null) => void
 } {
@@ -251,7 +261,7 @@ export function buildNameLabels(placed: PlacedNode[]): {
       aspect: s.w / LINE_H,
       size: 1.9 - p.node.importance * 0.2,
       always: p.node.importance <= 2,
-      offset: 1.5 * p.scale + 0.8,
+      offset: geomRadius(p.node.importance) * p.scale + 0.8,
     }
   })
 
@@ -349,6 +359,17 @@ export function buildNameLabels(placed: PlacedNode[]): {
   return {
     meshes,
     update,
+    /** 漫游：只点亮"刚显现的少数名称"并带上淡出 alpha，跳过屏内最近 N 个的名额逻辑 */
+    setTourNames: (count: number, idx: Int32Array, alpha: Float32Array) => {
+      visAttrs.forEach(a => (a.array as Float32Array).fill(0))
+      for (let k = 0; k < count; k++) {
+        const e = nodeLocal[idx[k]]
+        ;(e.attr.array as Float32Array)[e.local] = alpha[k]
+      }
+      visAttrs.forEach(a => { a.needsUpdate = true })
+    },
+    /** 迫使下一次 update 重算（退出漫游时名额集需要立刻恢复） */
+    invalidate: () => { lastCamPos.set(0, -1e9, 0) },
     setFilter: (fn: ((nodeIdx: number) => boolean) | null) => {
       keep = fn
       lastCamPos.set(0, -1e9, 0) // 迫使下一帧重算可见集
@@ -363,6 +384,8 @@ export function buildNameLabels(placed: PlacedNode[]): {
 export function buildEraLabels(eraRadii: number[], eraY: number[]): {
   meshes: THREE.Mesh[]
   update: () => void
+  /** 漫游：只显示已到达时代（含当前层）的时代名；传 -1 恢复全部 */
+  setVisibleThrough: (era: number) => void
 } {
   // 收集所有时代名的字符并去重，生成字符图集
   const uniqueChars: string[] = []
@@ -448,5 +471,18 @@ export function buildEraLabels(eraRadii: number[], eraY: number[]): {
   // 文字位置固定在环上，不随相机移动；旋转相机时文字会绕到柱子后方
   const update = () => {}
 
-  return { meshes, update }
+  // 每个字符实例属于哪个时代（单页图集 → 一个 mesh，实例顺序与 insts 一致）
+  const eraOfInst = insts.map(ci => ci.era)
+  const visAttr = (meshes[0].geometry as THREE.InstancedBufferGeometry)
+    .getAttribute('aVisible') as THREE.InstancedBufferAttribute
+
+  return {
+    meshes,
+    update,
+    setVisibleThrough: (era: number) => {
+      const a = visAttr.array as Float32Array
+      for (let i = 0; i < a.length; i++) a[i] = era < 0 || eraOfInst[i] <= era ? 1 : 0
+      visAttr.needsUpdate = true
+    },
+  }
 }

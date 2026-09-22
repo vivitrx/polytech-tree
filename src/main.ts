@@ -6,8 +6,9 @@ import { layoutTower } from './layout'
 import { createScene } from './scene'
 import { PolyhedraField, facesOf } from './polyhedra'
 import { buildEdges, buildEraRings } from './edges'
-import { buildNameLabels, buildEraLabels, updateLabelFocal } from './labels'
+import { buildNameLabels, buildEraLabels, updateLabelFocal, setLabelMinPxAll } from './labels'
 import { CameraRig } from './controls'
+import { TourPlan, BLEND } from './tour'
 
 // ───── 数据与布局 ─────
 const { placed, eraRadii, eraY, towerHeight } = layoutTower(TECHS)
@@ -25,8 +26,6 @@ const field = new PolyhedraField(
 )
 field.meshes.forEach(m => scene.add(m))
 
-scene.add(buildEdges(placed))
-
 const { rings } = buildEraRings(eraRadii, eraY)
 rings.forEach(r => scene.add(r))
 
@@ -37,13 +36,20 @@ nameLabels.meshes.forEach(m => scene.add(m))
 const eraLabels = buildEraLabels(eraRadii, eraY)
 eraLabels.meshes.forEach(m => scene.add(m))
 
-// ───── 相机 ─────
-const rig = new CameraRig(camera, renderer.domElement, eraRadii, eraY, towerHeight)
+// ───── 相机与漫游排期 ─────
+const plan = new TourPlan(placed, eraRadii, eraY)
+const rig = new CameraRig(camera, renderer.domElement, eraRadii, towerHeight, plan)
+
+// 连线要在漫游中按显现时刻生长，故依赖 plan 的 revealAt
+const edges = buildEdges(placed, plan.revealAt)
+scene.add(edges.lines)
 
 // ───── UI：图例 + 名称显示上限 ─────
 const legend = document.getElementById('legend')!
 legend.innerHTML = `
-  <div class="lg-title">领域图例</div>
+  <div class="lg-head"><div class="lg-title">领域图例</div>
+    <button class="lg-toggle" id="legendToggle" title="折叠/展开图例">▾</button></div>
+  <div class="lg-body">
   ${['A', 'B', 'C', 'D'].map(g => `
     <div class="lg-group">${GROUP_NAMES[g]}</div>
     ${CATEGORY_NAMES.map((name, i) => CATEGORY_GROUPS[i] === g ? `
@@ -68,7 +74,14 @@ legend.innerHTML = `
   <div class="lg-title">副轴 kind（规范 §3：筛选与文案）</div>
   <div class="lg-kinds" id="kindFilter"></div>
   <div class="lg-hint">点选即筛选：只压暗与让出名称名额，不动节点位置</div>
+  </div>
 `
+// 图例折叠：只留标题行，把画面让给塔身
+const legendToggle = document.getElementById('legendToggle') as HTMLButtonElement
+legendToggle.addEventListener('click', () => {
+  const collapsed = legend.classList.toggle('collapsed')
+  legendToggle.textContent = collapsed ? '▸' : '▾'
+})
 
 // ───── `kind` 副轴筛选（§3；只改颜色与名称名额，不改布局） ─────
 const kindFilter = document.getElementById('kindFilter')!
@@ -104,30 +117,82 @@ limitRange.addEventListener('input', () => {
 // ───── UI：字幕 ─────
 const caption = document.getElementById('eraCaption')!
 let captionTimer = 0
-function showCaption(era: number) {
+rig.onEraChange = era => {
   const info = ERA_INFO[era]
-  caption.innerHTML = `${info.name}<span class="sub">${info.range}</span>`
+  const win = plan.windows[era]
+  caption.innerHTML = `${info.name}<span class="sub">${info.range} · ${win.count} 项</span>`
   caption.classList.add('show')
   clearTimeout(captionTimer)
-  captionTimer = window.setTimeout(() => caption.classList.remove('show'), 3000)
+  // 只停留到本时代窗口过半，把画面让给正在显现的科技名
+  captionTimer = window.setTimeout(() => caption.classList.remove('show'), win.dur * 450)
 }
-rig.onEraChange = showCaption
 
 // ───── UI：工具栏 ─────
 const btnTour = document.getElementById('btnTour') as HTMLButtonElement
 const btnReset = document.getElementById('btnReset') as HTMLButtonElement
+
+// 漫游期间只保留时代名与科技名：其余界面与悬停让位，连线改为按显现时刻生长
+const BASE_FOV = camera.fov
+const fog = scene.fog as THREE.Fog
+const FOG_BASE = { near: fog.near, far: fog.far }
+let shownEra = -2
+let shownFov = BASE_FOV
+
+// 视场随"要看的圆盘"渐变；标签的像素换算依赖焦距，改 fov 必须同步
+function applyFov(fov: number) {
+  if (Math.abs(fov - shownFov) < 0.05) return
+  shownFov = fov
+  camera.fov = fov
+  camera.updateProjectionMatrix()
+  updateLabelFocal(innerHeight, fov)
+}
+
+// 未到达时代的圆盘与时代名不显示：俯视时它们是画面上方那片空白里唯一的杂物
+function showEraStage(era: number) {
+  if (era === shownEra) return
+  shownEra = era
+  rings.forEach((r, i) => (r.visible = i <= era))
+  eraLabels.setVisibleThrough(era)
+}
+
+function setTouring(on: boolean) {
+  document.body.classList.toggle('touring', on)
+  if (!on) applyFov(BASE_FOV) // 环绕模式恢复默认视场；漫游中由主循环逐帧驱动
+  setLabelMinPxAll(on ? 18 : 0) // 漫游中远处的名字也要读得清
+  // 俯视会看到下方整棵已积累的树，把雾推远免得它糊成一片背景
+  fog.near = on ? 420 : FOG_BASE.near
+  fog.far = on ? 2200 : FOG_BASE.far
+  if (on) {
+    hoverIdx = null
+    shownEra = -2
+    field.beginTour(plan.revealAt, 0)
+    edges.beginTour()
+  } else {
+    tooltip.classList.remove('show')
+    renderer.domElement.style.cursor = ''
+    field.endTour()
+    field.highlight(null)
+    edges.fillAll()
+    nameLabels.invalidate()
+    showEraStage(ERA_COUNT - 1)
+  }
+}
 
 btnTour.addEventListener('click', () => {
   if (rig.mode === 'tour') {
     rig.stopTour()
   } else {
     rig.startTour()
+    setTouring(true)
     btnTour.textContent = '⏹ 停止漫游'
     btnTour.classList.add('active')
   }
 })
 btnReset.addEventListener('click', () => rig.resetView())
 rig.onTourEnd = () => {
+  clearTimeout(captionTimer)
+  caption.classList.remove('show')
+  setTouring(false)
   btnTour.textContent = '▶ 漫游动画'
   btnTour.classList.remove('active')
 }
@@ -149,6 +214,7 @@ function yearText(n: TechNode): string {
 }
 
 renderer.domElement.addEventListener('pointermove', e => {
+  if (rig.mode === 'tour') return // 漫游中相机在动，悬停无意义
   const rect = renderer.domElement.getBoundingClientRect()
   ndc.set(
     ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -201,17 +267,30 @@ window.addEventListener('resize', refreshView)
 
 // ───── 主循环 ─────
 const clock = new THREE.Clock()
+const nameIdx = new Int32Array(placed.length)
+const nameAlpha = new Float32Array(placed.length)
 
 function loop() {
   requestAnimationFrame(loop)
   const dt = Math.min(clock.getDelta(), 0.1)
   const time = clock.elapsedTime
 
-  field.update(time)
-  field.highlight(hoverIdx)
   rig.update(dt)
+  if (rig.mode === 'tour') {
+    const t = rig.tourT - BLEND
+    applyFov(plan.fovAt(t))
+    field.setTourTime(t)
+    field.update(time)
+    edges.update(t)
+    showEraStage(plan.eraOf(t))
+    nameLabels.setTourNames(Math.max(0, plan.collectNames(t, nameIdx, nameAlpha)), nameIdx, nameAlpha)
+  } else {
+    field.update(time)
+    field.highlight(hoverIdx)
+    // 名称：仅完整在屏内的，按距离保留最近 limit 个
+    nameLabels.update(camera, labelLimit, innerWidth, innerHeight)
+  }
   eraLabels.update() // 时代名位置固定，无需每帧更新（保留接口兼容）
-  nameLabels.update(camera, labelLimit, innerWidth, innerHeight) // 名称：仅完整在屏内的，按距离保留最近 limit 个
 
   renderer.render(scene, camera)
 }

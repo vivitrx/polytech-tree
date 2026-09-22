@@ -37,7 +37,25 @@ body {
 }
 #title small { font-size: 11px; opacity: 0.55; letter-spacing: 1px; }
 
-#legend { top: 16px; right: 16px; padding: 12px 16px; }
+#legend {
+  top: 16px; right: 16px; padding: 12px 14px;
+  width: 208px;              /* 固定宽度：不提示换行的长文案会把面板撑到 360px 以上 */
+  max-height: calc(100vh - 32px); overflow-y: auto;
+}
+#legend .lg-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 6px;
+}
+#legend .lg-toggle {
+  flex: none; font: inherit; font-size: 11px; line-height: 1;
+  padding: 3px 7px; border-radius: 6px; cursor: pointer;
+  background: rgba(60, 100, 200, 0.18); color: inherit;
+  border: 1px solid var(--line);
+}
+#legend .lg-toggle:hover { background: rgba(90, 140, 255, 0.32); }
+/* 折叠：只留标题行与按钮 */
+#legend.collapsed .lg-body { display: none; }
+#legend.collapsed { width: auto; padding-bottom: 10px; }
 #legend .lg-title {
   font-size: 11px;
   letter-spacing: 2px;
@@ -176,3 +194,11 @@ body {
   border-top: 1px solid rgba(90, 140, 255, 0.25);
   opacity: 0.85;
 }
+
+/* 漫游动画：画面只留时代名与科技名，其余界面淡出。退出用热键 Esc（或点击画面），故工具栏整体隐去 */
+#title, #legend, #hint, #toolbar { transition: opacity 0.5s; }
+body.touring #title,
+body.touring #legend,
+body.touring #hint,
+body.touring #toolbar { opacity: 0; pointer-events: none; }
+body.touring #tooltip { display: none; }

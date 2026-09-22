@@ -1,34 +1,39 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { ERA_COUNT } from './data'
 import { startViewDistance } from './layout'
+import { BLEND, type TourPlan } from './tour'
 
-// 相机系统：环绕观察（默认）+ 螺旋上升漫游动画
-const TOUR_DURATION = 72 // 秒
-const TOUR_BLEND = 2.2   // 开场从当前位姿融入路径的时长（秒）
-
+// 相机系统：环绕观察（默认）+ 螺旋上升漫游动画（轨道与排期见 tour.ts）
 export type CameraMode = 'orbit' | 'tour'
+
+const WORLD_UP = new THREE.Vector3(0, 1, 0)
 
 export class CameraRig {
   mode: CameraMode = 'orbit'
+  /** 漫游时钟（秒）：orbit 模式下无意义 */
+  tourT = 0
   controls: OrbitControls
   onEraChange?: (era: number) => void
   onTourEnd?: () => void
 
   private camera: THREE.PerspectiveCamera
+  private plan: TourPlan
   private eraRadii: number[]
-  private eraY: number[]
   private towerHeight: number
-  private tourT = 0
   private lastEra = -1
   private startPos = new THREE.Vector3()
   private startTarget = new THREE.Vector3()
   private lookTarget = new THREE.Vector3()
+  private pos = new THREE.Vector3()
+  private up = new THREE.Vector3(0, 1, 0)
 
-  constructor(camera: THREE.PerspectiveCamera, dom: HTMLElement, eraRadii: number[], eraY: number[], towerHeight: number) {
+  constructor(
+    camera: THREE.PerspectiveCamera, dom: HTMLElement,
+    eraRadii: number[], towerHeight: number, plan: TourPlan
+  ) {
     this.camera = camera
+    this.plan = plan
     this.eraRadii = eraRadii
-    this.eraY = eraY
     this.towerHeight = towerHeight
 
     this.controls = new OrbitControls(camera, dom)
@@ -67,6 +72,7 @@ export class CameraRig {
     this.mode = 'tour'
     this.tourT = 0
     this.lastEra = -1
+    this.plan.reset()
     this.startPos.copy(this.camera.position)
     this.startTarget.copy(this.controls.target)
     this.controls.enabled = false
@@ -76,6 +82,8 @@ export class CameraRig {
     if (this.mode !== 'tour') return
     this.mode = 'orbit'
     this.controls.enabled = true
+    // 漫游把 up 改成了水平向量（视线朝上时必需），环绕模式要交还世界竖直
+    this.camera.up.copy(WORLD_UP)
     this.controls.target.copy(this.lookTarget.lengthSq() > 0 ? this.lookTarget : new THREE.Vector3(0, this.camera.position.y, 0))
     this.controls.update()
     this.onTourEnd?.()
@@ -87,10 +95,9 @@ export class CameraRig {
       return
     }
 
-    this.tourT += dt / TOUR_DURATION
-    if (this.tourT >= 1) {
-      this.tourT = 1
-      this.applyTourPose(this.tourT)
+    this.tourT += dt
+    if (this.tourT >= this.plan.total) {
+      this.applyTourPose(this.plan.total)
       this.stopTour()
       return
     }
@@ -98,46 +105,26 @@ export class CameraRig {
   }
 
   private applyTourPose(t: number) {
-    const y = -8 + t * (this.towerHeight + 16)
-    const angle = -Math.PI * 0.25 + t * Math.PI * 5
-    const radius = this.radiusAtY(y) + 22
+    this.plan.poseAt(t, this.pos, this.lookTarget)
+    this.plan.upAt(t, this.up)
 
-    const pos = new THREE.Vector3(Math.cos(angle) * radius, y, Math.sin(angle) * radius)
-    const target = new THREE.Vector3(0, Math.min(y + 12, this.towerHeight + 4), 0)
-
-    // 开场位姿融入
-    if (this.tourT * TOUR_DURATION < TOUR_BLEND) {
-      const k = (this.tourT * TOUR_DURATION) / TOUR_BLEND
+    // 开场从当前位姿融入中轴线起点
+    if (t < BLEND) {
+      const k = t / BLEND
       const s = k * k * (3 - 2 * k) // smoothstep
-      pos.lerpVectors(this.startPos, pos, s)
-      target.lerpVectors(this.startTarget, target, s)
+      this.pos.lerpVectors(this.startPos, this.pos, s)
+      this.lookTarget.lerpVectors(this.startTarget, this.lookTarget, s)
+      this.up.lerpVectors(WORLD_UP, this.up, s)
     }
 
-    this.camera.position.copy(pos)
-    this.lookTarget.copy(target)
-    this.camera.lookAt(target)
+    this.camera.position.copy(this.pos)
+    this.camera.up.copy(this.up)
+    this.camera.lookAt(this.lookTarget)
 
-    // 时代字幕：按各层实际 Y 位置检测
-    let era = 0
-    for (let e = 0; e < ERA_COUNT; e++) {
-      if (y >= this.eraY[e] - (this.eraY[e] - (e > 0 ? this.eraY[e - 1] : -12)) * 0.45) era = e
-      else break
-    }
+    const era = this.plan.eraOf(t)
     if (era !== this.lastEra) {
       this.lastEra = era
       this.onEraChange?.(era)
     }
-  }
-
-  private radiusAtY(y: number): number {
-    // 在各层实际 Y 位置之间插值半径
-    if (y <= this.eraY[0]) return this.eraRadii[0]
-    for (let i = 0; i < ERA_COUNT - 1; i++) {
-      if (y >= this.eraY[i] && y <= this.eraY[i + 1]) {
-        const frac = (y - this.eraY[i]) / (this.eraY[i + 1] - this.eraY[i])
-        return this.eraRadii[i] + (this.eraRadii[i + 1] - this.eraRadii[i]) * frac
-      }
-    }
-    return this.eraRadii[ERA_COUNT - 1]
   }
 }

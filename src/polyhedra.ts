@@ -1,12 +1,14 @@
 import * as THREE from 'three'
-import type { PlacedNode } from './layout'
+import { geomRadius, type PlacedNode } from './layout'
+import { FLASH } from './tour'
 
 // 形状 = 重要度（面数越多越重要），颜色 = 领域（见 categories.json）
 // 5 档重要度正好对应 5 种柏拉图立体的面数：20 / 12 / 8 / 6 / 4
 // importance 1 = 基石 → 二十面体；importance 5 = 长尾 → 四面体
-const R = 1.5 // 统一外接球半径，低面数立体因体积小而自然显得更小
+// 外接球半径由 layout.ts 的 geomRadius 统一给出，低面数立体因体积小而自然显得更小
+const R = geomRadius(2) // 除基石外各档共用的外接球半径
 const BY_IMPORTANCE: THREE.BufferGeometry[] = [
-  new THREE.IcosahedronGeometry(R),      // 20 面 —— importance 1
+  new THREE.IcosahedronGeometry(geomRadius(1)), // 20 面 —— importance 1
   new THREE.DodecahedronGeometry(R),     // 12 面 —— importance 2
   new THREE.OctahedronGeometry(R),       //  8 面 —— importance 3
   new THREE.BoxGeometry(R * 2 / Math.sqrt(3), R * 2 / Math.sqrt(3), R * 2 / Math.sqrt(3)), // 6 面 —— 4
@@ -23,6 +25,15 @@ interface InstanceMeta {
   placed: PlacedNode
 }
 
+/**
+ * 显现弹入曲线：前 22% 时长冲到 ~2 倍再落回 1 倍。
+ * 漫游中节点在屏幕上只有几像素，靠这个尺寸冲击"闪白"才看得见。
+ */
+function pop(k: number): number {
+  const grow = Math.min(1, k / 0.22)
+  return grow * (1 + 1.6 * Math.pow(1 - k, 1.6))
+}
+
 export class PolyhedraField {
   meshes: THREE.InstancedMesh[] = []
   private metas: InstanceMeta[][] = []
@@ -34,6 +45,11 @@ export class PolyhedraField {
   private keep: ((nodeIdx: number) => boolean) | null = null
   private byIdx: PlacedNode[]
   private dim = new THREE.Color(0x070a14)
+  // 漫游显现：revealAt[节点] = 出现时刻，tourTime < 0 表示不在漫游中（全部可见）
+  private revealAt: Float32Array | null = null
+  private tourTime = -1
+  private flashFlags: Uint8Array[] = []
+  private tmpColor = new THREE.Color()
 
   constructor(placed: PlacedNode[], colors: THREE.Color[]) {
     this.colors = colors
@@ -59,21 +75,69 @@ export class PolyhedraField {
     }
   }
 
-  /** 每帧更新自转 */
+  /** 每帧更新自转；漫游中还要处理"按年份逐个显现 + 闪亮" */
   update(time: number) {
+    const reveal = this.revealAt
     for (let lv = 0; lv < this.meshes.length; lv++) {
       const mesh = this.meshes[lv]
       const meta = this.metas[lv]
+      const flags = reveal ? this.flashFlags[lv] : null
+      let repaint = false
       for (let i = 0; i < meta.length; i++) {
         const p = meta[i].placed
+        let s = p.scale
+        let flash = 0
+        if (reveal) {
+          const age = this.tourTime - reveal[meta[i].nodeIdx]
+          if (age < 0) s = 0
+          else if (age < FLASH) {
+            const k = age / FLASH
+            s = p.scale * pop(k)
+            flash = 1 - k
+          }
+        }
         this.tmp.position.copy(p.position)
         this.tmp.quaternion.setFromAxisAngle(p.spinAxis, p.phase + time * p.spinSpeed)
-        this.tmp.scale.setScalar(p.scale)
+        this.tmp.scale.setScalar(s)
         this.tmp.updateMatrix()
         mesh.setMatrixAt(i, this.tmp.matrix)
+
+        if (flags) {
+          const was = flags[i] > 0
+          if (flash > 0) {
+            this.tmpColor.copy(this.colors[p.node.category]).multiplyScalar(1 + flash * 12)
+            mesh.setColorAt(i, this.tmpColor)
+            flags[i] = 1
+            repaint = true
+          } else {
+            // 闪亮结束的那一帧把颜色写回基础色，其余帧不动这张 buffer
+            if (was) { mesh.setColorAt(i, this.colors[p.node.category]); repaint = true }
+            flags[i] = 0
+          }
+        }
       }
       mesh.instanceMatrix.needsUpdate = true
+      if (repaint && mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     }
+  }
+
+  /** 进入漫游：接管可见性，节点按 revealAt 逐个出现 */
+  beginTour(revealAt: Float32Array, t: number) {
+    this.revealAt = revealAt
+    this.tourTime = t
+    this.flashFlags = this.metas.map(m => new Uint8Array(m.length))
+  }
+
+  /** 退出漫游：全部恢复可见并按当前筛选重绘 */
+  endTour() {
+    this.revealAt = null
+    this.tourTime = -1
+    this.flashFlags = []
+    this.setFilter(this.keep)
+  }
+
+  setTourTime(t: number) {
+    if (this.revealAt) this.tourTime = t
   }
 
   /** 设置/清除筛选（传 null 显示全部）；只改颜色，节点位置与大小不动 */
