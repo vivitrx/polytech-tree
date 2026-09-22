@@ -62,6 +62,12 @@ scripts/
 
 技术栈：TypeScript + [three.js](https://threejs.org/) + Vite。无后端、无运行时网络请求，全部数据在构建时打进包里。
 
+### 许可
+
+分两块，都已生效：代码（`src/`、`scripts/`）为 [MIT](LICENSE)；数据（`data/`）的结构化字段为
+[CC BY 4.0](LICENSE-data.md)，而中文 `desc` 摘要里源自英文维基百科的部分继续按 **CC BY-SA 4.0**
+提供并署名（英文维基是相同方式共享，翻译算衍生作品），每条对应的英文条目名见该条目的 `wikiEn`。
+
 ### 参与贡献
 
 新增科技、时代、领域，请看 [CONTRIBUTING.md](CONTRIBUTING.md)。数据是普通 JSON，改完跑一次 `npm run validate` 即可提 PR。
@@ -87,11 +93,16 @@ The dataset lives in plain JSON files under `data/`, so adding a technology, an 
 
 Names, dates and article pointers were compiled from English Wikipedia (the `wikiEn` field records the article title an entry was checked against) plus period references; `data/research/` holds the per-era working notes behind every batch. Not every entry has a `wikiEn` yet — `npm run validate` lists the ones still missing it, so treat that field as an audit trail rather than a guarantee.
 
-The `desc` summaries are meant to be original Chinese writing, not translations of Wikipedia lead sentences. An audit in 2026-09 found that an early batch drifted into paraphrase-translation for a minority of entries, so the field is being rewritten repository-wide. Until that lands, treat the dataset as **all rights reserved** and do not reuse `desc` text.
+The `desc` summaries are meant to be original Chinese writing. An audit in 2026-09 found that a minority of entries sit close to the English lead they were checked against, so those summaries are treated as CC BY-SA-derived text rather than re-labelled as original (see the licence below); no per-entry rewrite pass is planned.
 
 Treat the whole dataset as a curated educational index, not an authoritative chronology — dating the first instance of a technology is genuinely contested, and entries carry the year this compilation chose.
 
 ## License
 
-Planned: MIT for the code, CC BY 4.0 for the data. **Neither is in effect yet** — the permissive data license depends on the `desc` rewrite above, because text derived from Wikipedia is CC BY-SA and cannot be re-published under CC BY. Until `LICENSE` and `LICENSE-data.md` appear in this repository, all rights are reserved by the repository owner, including the `data/` JSON files.
+Licensing is split in two, and both files are in effect:
+
+* **Code** (`src/`, `scripts/`, build tooling): [MIT](LICENSE).
+* **Data** (`data/`): structured fields (year, era, category, kind, importance, dependencies) under [CC BY 4.0](LICENSE-data.md); the Chinese `desc` summaries carry text derived from English Wikipedia and are therefore offered under **CC BY-SA 4.0** with attribution, since Wikipedia's licence is share-alike and translation counts as a derivative. `wikiEn` names the source article for each entry.
+
+Reuse of the dataset means reading `LICENSE-data.md`: CC BY for the structure, CC BY-SA for the summaries.
 

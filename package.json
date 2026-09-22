@@ -2,6 +2,8 @@
   "name": "polytech-tree",
   "private": true,
   "version": "0.1.0",
+  "license": "SEE LICENSE IN LICENSE and LICENSE-data.md",
+  "licenses": ["MIT", "CC-BY-4.0", "CC-BY-SA-4.0"],
   "type": "module",
   "scripts": {
     "dev": "vite",
