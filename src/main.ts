@@ -242,6 +242,11 @@ renderer.domElement.addEventListener('pointermove', e => {
         <div class="tt-dim">重要度 ${'★'.repeat(6 - n.importance)}${'☆'.repeat(n.importance - 1)}　${facesOf(n.importance)} 面</div>
         ${prereqNames ? `<div class="tt-dim">前置：${prereqNames}</div>` : ''}
         ${n.desc ? `<div class="tt-desc">${n.desc}</div>` : ''}
+        ${n.wikiEn
+          ? `<div class="tt-src">摘要参考英文维基百科条目
+              <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(n.wikiEn)}" target="_blank" rel="noopener">${n.wikiEn}</a>
+              （CC BY-SA 4.0）</div>`
+          : ''}
       `
       tooltip.style.left = `${e.clientX + 16}px`
       tooltip.style.top = `${e.clientY + 12}px`

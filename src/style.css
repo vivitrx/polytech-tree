@@ -194,11 +194,38 @@ body {
   border-top: 1px solid rgba(90, 140, 255, 0.25);
   opacity: 0.85;
 }
+/* 逐条出处：英文维基标题可能很长，需要换行而不是撑宽整张卡片 */
+#tooltip .tt-src {
+  max-width: 300px;
+  white-space: normal;
+  margin-top: 3px;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* 许可署名：CC BY / CC BY-SA 要求在使用处可见出处，故常驻右下角 */
+#credit {
+  position: fixed;
+  right: 16px;
+  bottom: 14px;
+  z-index: 10;
+  max-width: 360px;
+  text-align: right;
+  font-size: 10px;
+  line-height: 1.65;
+  letter-spacing: 0.3px;
+  color: rgba(150, 170, 205, 0.6);
+}
+#credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+#credit a:hover { color: #cfe0ff; }
+#tooltip a { color: #8fb6ff; }
+#tooltip a:hover { color: #dfe9ff; }
 
 /* 漫游动画：画面只留时代名与科技名，其余界面淡出。退出用热键 Esc（或点击画面），故工具栏整体隐去 */
-#title, #legend, #hint, #toolbar { transition: opacity 0.5s; }
+#title, #legend, #hint, #toolbar, #credit { transition: opacity 0.5s; }
 body.touring #title,
 body.touring #legend,
 body.touring #hint,
-body.touring #toolbar { opacity: 0; pointer-events: none; }
+body.touring #toolbar,
+body.touring #credit { opacity: 0; pointer-events: none; }
 body.touring #tooltip { display: none; }
