@@ -406,6 +406,7 @@ function focusDistance(importance: number): number {
 /** 聚焦到某个节点：摄像机对准 + 高亮 + 信息卡 */
 function focusNode(idx: number) {
   const p = placed[idx]
+  unfreeze() // 冻结会阻止相机动画，聚焦前先解除
   rig.focusOn(p.position, focusDistance(p.node.importance))
   closeSearch() // 收起搜索框：输入框持有焦点会吞掉空格键，收起后即可用空格冻结
   field.setFocus(idx)
@@ -619,6 +620,7 @@ document.getElementById('relationBreadcrumb')!.addEventListener('click', e => {
   if (idx === relationFocus) return
   const pos = relationHistory.indexOf(idx)
   if (pos >= 0) relationHistory = relationHistory.slice(0, pos)
+  unfreeze() // 冻结会阻止相机动画，跳转前先解除
   setRelation(idx, false)
   rig.focusOn(placed[idx].position, focusDistance(placed[idx].node.importance))
   showTooltip(idx, 24, 116)
@@ -629,6 +631,7 @@ tooltip.addEventListener('click', e => {
   const nav = (e.target as HTMLElement).closest('.tt-nav')
   if (!nav) return
   const idx = Number((nav as HTMLElement).dataset.idx)
+  unfreeze() // 冻结会阻止相机动画，跳转前先解除
   setRelation(idx)
   rig.focusOn(placed[idx].position, focusDistance(placed[idx].node.importance))
   showTooltip(idx, 24, 116)
@@ -652,6 +655,14 @@ const nameAlpha = new Float32Array(placed.length)
 // ───── 冻结模式（空格开关）：节点与相机全停，方便把鼠标移到信息卡上点链接 ─────
 let frozen = false
 let frozenTime = 0
+
+/** 解除冻结：跳转/聚焦前调用（冻结会阻止相机动画推进） */
+function unfreeze() {
+  if (!frozen) return
+  frozen = false
+  rig.setFrozen(false)
+  document.body.classList.remove('frozen')
+}
 
 /** 焦点是否落在输入控件上：是则空格交给输入框，不做冻结开关 */
 function isTypingTarget(el: Element | null): boolean {
