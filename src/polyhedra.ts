@@ -46,6 +46,10 @@ export class PolyhedraField {
   private keep: ((nodeIdx: number) => boolean) | null = null
   private byIdx: PlacedNode[]
   private dim = new THREE.Color(0x070a14)
+  // 关系高亮（点击节点）：焦点白、基石青、后继橙、其余压暗
+  private relation: { focus: number; prereqs: Set<number>; succs: Set<number> } | null = null
+  private prereqColor = new THREE.Color(0x39cbd0)
+  private succColor = new THREE.Color(0xffb347)
   // 漫游显现：revealAt[节点] = 出现时刻，tourTime < 0 表示不在漫游中（全部可见）
   private revealAt: Float32Array | null = null
   private tourTime = -1
@@ -154,6 +158,12 @@ export class PolyhedraField {
   private colorOf(nodeIdx: number): THREE.Color {
     const base = this.colors[this.byIdx[nodeIdx].node.category]
     if (this.highlightIdx === nodeIdx || this.focusIdx === nodeIdx) return this.white
+    if (this.relation) {
+      if (nodeIdx === this.relation.focus) return this.white
+      if (this.relation.prereqs.has(nodeIdx)) return this.prereqColor
+      if (this.relation.succs.has(nodeIdx)) return this.succColor
+      return base.clone().lerp(this.dim, 0.85)
+    }
     if (this.keep && !this.keep(nodeIdx)) return base.clone().lerp(this.dim, 0.9)
     return base
   }
@@ -175,6 +185,27 @@ export class PolyhedraField {
     this.focusIdx = nodeIdx
     for (const idx of [prev, nodeIdx]) {
       if (idx !== null && idx !== undefined) this.repaint(idx)
+    }
+  }
+
+  /** 关系高亮（点击节点）：焦点白、基石青、后继橙、其余压暗 */
+  setRelation(focus: number, prereqs: Set<number>, succs: Set<number>) {
+    this.relation = { focus, prereqs, succs }
+    this.repaintAll()
+  }
+
+  /** 清除关系高亮 */
+  clearRelation() {
+    if (!this.relation) return
+    this.relation = null
+    this.repaintAll()
+  }
+
+  private repaintAll() {
+    for (let lv = 0; lv < this.meshes.length; lv++) {
+      const mesh = this.meshes[lv]
+      this.metas[lv].forEach((m, i) => mesh.setColorAt(i, this.colorOf(m.nodeIdx)))
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     }
   }
 

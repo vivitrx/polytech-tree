@@ -166,6 +166,7 @@ function setTouring(on: boolean) {
     hoverIdx = null
     shownEra = -2
     field.setFocus(null)
+    clearRelation()
     field.beginTour(plan.revealAt, 0)
     edges.beginTour()
   } else {
@@ -223,12 +224,17 @@ function showTooltip(idx: number, x: number, y: number) {
     .filter(Boolean)
     .slice(0, 4)
     .join('、')
+  // 关系高亮时：在信息卡里标注基石/后继数量与颜色
+  const relationLine = relationFocus === idx
+    ? `<div class="tt-dim">基石 ${collectPrereqs(idx, RELATION_DEPTH).size} 项（青）· 后继 ${collectSuccs(idx).size} 项（橙）</div>`
+    : ''
   tooltip.innerHTML = `
     <div class="tt-name">${n.name}</div>
     <div class="tt-dim">${n.nameEn !== n.name ? n.nameEn + ' · ' : ''}${yearText(n)}</div>
     <div class="tt-dim">${ERA_INFO[n.era].name} · ${CATEGORY_NAMES[n.category]}${n.kind ? ' · ' + n.kind : ''}</div>
     <div class="tt-dim">重要度 ${'★'.repeat(6 - n.importance)}${'☆'.repeat(n.importance - 1)}　${facesOf(n.importance)} 面</div>
     ${prereqNames ? `<div class="tt-dim">前置：${prereqNames}</div>` : ''}
+    ${relationLine}
     ${n.desc ? `<div class="tt-desc">${n.desc}</div>` : ''}
     ${n.wikiEn
       ? `<div class="tt-src">摘要参考英文维基百科条目
@@ -413,6 +419,90 @@ window.addEventListener('keydown', e => {
     e.preventDefault()
     openSearch()
   }
+})
+
+// ───── 关系高亮（点击节点）：基石（青）与后继（橙） ─────
+const IDX_BY_ID = new Map<string, number>()
+placed.forEach((p, i) => IDX_BY_ID.set(p.node.id, i))
+// 反向索引：id → 哪些节点的 prereqs 引用它（即它的后继）
+const SUCC_BY_ID = new Map<string, number[]>()
+placed.forEach((p, i) => {
+  p.node.prereqs.forEach(pid => {
+    const arr = SUCC_BY_ID.get(pid)
+    if (arr) arr.push(i)
+    else SUCC_BY_ID.set(pid, [i])
+  })
+})
+const RELATION_DEPTH = 3 // 基石沿 prereqs 递归展开的层数
+
+let relationFocus: number | null = null
+
+/** 沿 prereqs 递归展开 depth 层，返回基石节点索引集合 */
+function collectPrereqs(idx: number, depth: number): Set<number> {
+  const seen = new Set<number>()
+  let frontier = [idx]
+  for (let d = 0; d < depth; d++) {
+    const next: number[] = []
+    for (const i of frontier) {
+      for (const pid of placed[i].node.prereqs) {
+        const pi = IDX_BY_ID.get(pid)
+        if (pi !== undefined && !seen.has(pi)) {
+          seen.add(pi)
+          next.push(pi)
+        }
+      }
+    }
+    frontier = next
+  }
+  return seen
+}
+
+/** 直接反向引用：哪些节点以它为基石 */
+function collectSuccs(idx: number): Set<number> {
+  return new Set(SUCC_BY_ID.get(placed[idx].node.id) ?? [])
+}
+
+/** 高亮某节点的关系：焦点白、基石青、后继橙、其余压暗 */
+function setRelation(idx: number) {
+  relationFocus = idx
+  field.setRelation(idx, collectPrereqs(idx, RELATION_DEPTH), collectSuccs(idx))
+}
+
+/** 清除关系高亮 */
+function clearRelation() {
+  if (relationFocus === null) return
+  relationFocus = null
+  field.clearRelation()
+}
+
+// 点击节点看关系；拖拽旋转（位移 > 6px）不算点击；点空白清除
+let downX = 0, downY = 0
+renderer.domElement.addEventListener('pointerdown', e => {
+  downX = e.clientX
+  downY = e.clientY
+})
+renderer.domElement.addEventListener('pointerup', e => {
+  if (rig.mode === 'tour') return // 漫游中相机在动，点击无意义
+  if (Math.hypot(e.clientX - downX, e.clientY - downY) > 6) return // 拖拽不算点击
+  const rect = renderer.domElement.getBoundingClientRect()
+  ndc.set(
+    ((e.clientX - rect.left) / rect.width) * 2 - 1,
+    -((e.clientY - rect.top) / rect.height) * 2 + 1
+  )
+  raycaster.setFromCamera(ndc, camera)
+  const hits = raycaster.intersectObjects(field.meshes, false)
+  if (hits.length > 0) {
+    const idx = field.nodeIndexAt(hits[0].object, hits[0].instanceId!)
+    if (idx !== null) {
+      if (relationFocus === idx) clearRelation() // 再点同一节点：取消
+      else {
+        setRelation(idx)
+        showTooltip(idx, e.clientX + 16, e.clientY + 12)
+      }
+      return
+    }
+  }
+  clearRelation() // 点空白：取消
 })
 
 // ───── 自适应窗口 ─────
