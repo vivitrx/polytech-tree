@@ -372,12 +372,15 @@ function closeSearch() {
   searchInput.blur()
 }
 
+/** 聚焦视距：按重要度缩放（基石更大，稍微拉远看全；长尾节点小，靠近些） */
+function focusDistance(importance: number): number {
+  return 12 + (6 - importance) * 2
+}
+
 /** 聚焦到某个节点：摄像机对准 + 高亮 + 信息卡 */
 function focusNode(idx: number) {
   const p = placed[idx]
-  // 视距按重要度缩放：基石更大，稍微拉远看全；长尾节点小，靠近些
-  const dist = 12 + (6 - p.node.importance) * 2
-  rig.focusOn(p.position, dist)
+  rig.focusOn(p.position, focusDistance(p.node.importance))
   closeSearch() // 收起搜索框：输入框持有焦点会吞掉空格键，收起后即可用空格冻结
   field.setFocus(idx)
   // 信息卡固定在标题面板下方，不跟随鼠标，免得挡住正被观察的节点
@@ -436,6 +439,7 @@ placed.forEach((p, i) => {
 const RELATION_DEPTH = 3 // 基石沿 prereqs 递归展开的层数
 
 let relationFocus: number | null = null
+let relationHistory: number[] = [] // 关系导航历史（面包屑）
 
 /** 沿 prereqs 递归展开 depth 层，返回基石节点索引集合 */
 function collectPrereqs(idx: number, depth: number): Set<number> {
@@ -462,17 +466,28 @@ function collectSuccs(idx: number): Set<number> {
   return new Set(SUCC_BY_ID.get(placed[idx].node.id) ?? [])
 }
 
-/** 高亮某节点的关系：焦点白、基石青、后继橙、其余压暗 */
-function setRelation(idx: number) {
+/** 高亮某节点的关系：焦点白、基石青、后继橙、其余压暗；只显示关系节点名字 */
+function setRelation(idx: number, pushHistory = true) {
+  if (pushHistory && relationFocus !== null && relationFocus !== idx) {
+    relationHistory.push(relationFocus)
+  }
   relationFocus = idx
-  field.setRelation(idx, collectPrereqs(idx, RELATION_DEPTH), collectSuccs(idx))
+  const prereqs = collectPrereqs(idx, RELATION_DEPTH)
+  const succs = collectSuccs(idx)
+  field.setRelation(idx, prereqs, succs)
+  // 只保留焦点与上下游的名字，其余名称全部隐藏，让屏幕干净
+  nameLabels.setFilter(i => i === idx || prereqs.has(i) || succs.has(i))
+  renderBreadcrumb()
 }
 
 /** 清除关系高亮 */
 function clearRelation() {
   if (relationFocus === null) return
   relationFocus = null
+  relationHistory = []
   field.clearRelation()
+  applyKindFilter() // 恢复 kind 筛选（field 与 nameLabels 一起恢复）
+  renderBreadcrumb()
 }
 
 // 点击节点看关系；拖拽旋转（位移 > 6px）不算点击；点空白清除
@@ -503,6 +518,36 @@ renderer.domElement.addEventListener('pointerup', e => {
     }
   }
   clearRelation() // 点空白：取消
+})
+
+/** 渲染关系导航面包屑：历史 + 当前焦点，点击可跳回 */
+function renderBreadcrumb() {
+  const bc = document.getElementById('relationBreadcrumb')!
+  if (relationFocus === null) {
+    bc.classList.remove('show')
+    bc.innerHTML = ''
+    return
+  }
+  const items = [...relationHistory, relationFocus]
+  bc.innerHTML = items.map((idx, i) => {
+    const isCurrent = i === items.length - 1
+    const sep = i > 0 ? '<span class="rb-sep">→</span>' : ''
+    return `${sep}<span class="rb-item${isCurrent ? ' current' : ''}" data-idx="${idx}">${escapeHtml(placed[idx].node.name)}</span>`
+  }).join('')
+  bc.classList.add('show')
+}
+
+// 点击面包屑节点：跳回该节点（恢复关系 + 相机聚焦），历史截断到该位置
+document.getElementById('relationBreadcrumb')!.addEventListener('click', e => {
+  const item = (e.target as HTMLElement).closest('.rb-item')
+  if (!item) return
+  const idx = Number((item as HTMLElement).dataset.idx)
+  if (idx === relationFocus) return
+  const pos = relationHistory.indexOf(idx)
+  if (pos >= 0) relationHistory = relationHistory.slice(0, pos)
+  setRelation(idx, false)
+  rig.focusOn(placed[idx].position, focusDistance(placed[idx].node.importance))
+  showTooltip(idx, 24, 116)
 })
 
 // ───── 自适应窗口 ─────

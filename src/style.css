@@ -130,6 +130,26 @@ body {
   color: #fff;
 }
 
+/* ───── 关系导航面包屑（点击节点后显示，可跳回历史） ───── */
+#relationBreadcrumb {
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  z-index: 15;
+  white-space: nowrap;
+}
+#relationBreadcrumb.show { display: flex; }
+.rb-item { cursor: pointer; opacity: 0.65; }
+.rb-item:hover { opacity: 1; color: #fff; }
+.rb-item.current { opacity: 1; font-weight: bold; color: #fff; }
+.rb-sep { opacity: 0.4; margin: 0 2px; }
+
 /* ───── 搜索定位（Ctrl+F） ───── */
 #search {
   top: 16px;
