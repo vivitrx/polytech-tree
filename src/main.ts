@@ -215,6 +215,15 @@ function yearText(n: TechNode): string {
   return `${b.approx ? '约' : ''}${core}${b.mark ? `（${b.mark}）` : ''}`
 }
 
+/** 生成可点击的节点名列表（卡片导航用），超出 max 个折叠 */
+function navList(idxs: Set<number>, max = 6): string {
+  const arr = [...idxs]
+  if (arr.length === 0) return '无'
+  const shown = arr.slice(0, max)
+  const more = arr.length > max ? `等 ${arr.length} 项` : ''
+  return shown.map(pi => `<span class="tt-nav" data-idx="${pi}">${escapeHtml(placed[pi].node.name)}</span>`).join('、') + (more ? `（${more}）` : '')
+}
+
 /** 在指定屏幕坐标显示节点信息卡（悬停与搜索定位共用） */
 function showTooltip(idx: number, x: number, y: number) {
   const n = placed[idx].node
@@ -228,6 +237,11 @@ function showTooltip(idx: number, x: number, y: number) {
   const relationLine = relationFocus === idx
     ? `<div class="tt-dim">基石 ${collectPrereqs(idx, RELATION_DEPTH).size} 项（青）· 后继 ${collectSuccs(idx).size} 项（橙）</div>`
     : ''
+  // 关系焦点：列出基石/后继节点名，可直接点击跳转导航
+  const relationNav = relationFocus === idx
+    ? `<div class="tt-dim">基石：${navList(collectPrereqs(idx, RELATION_DEPTH))}</div>
+       <div class="tt-dim">后继：${navList(collectSuccs(idx))}</div>`
+    : ''
   tooltip.innerHTML = `
     <div class="tt-name">${n.name}</div>
     <div class="tt-dim">${n.nameEn !== n.name ? n.nameEn + ' · ' : ''}${yearText(n)}</div>
@@ -235,6 +249,7 @@ function showTooltip(idx: number, x: number, y: number) {
     <div class="tt-dim">重要度 ${'★'.repeat(6 - n.importance)}${'☆'.repeat(n.importance - 1)}　${facesOf(n.importance)} 面</div>
     ${prereqNames ? `<div class="tt-dim">前置：${prereqNames}</div>` : ''}
     ${relationLine}
+    ${relationNav}
     ${n.desc ? `<div class="tt-desc">${n.desc}</div>` : ''}
     ${n.wikiEn
       ? `<div class="tt-src">摘要参考英文维基百科条目
@@ -267,13 +282,24 @@ renderer.domElement.addEventListener('pointermove', e => {
         renderer.domElement.style.cursor = 'pointer'
         return
       }
-      showTooltip(idx, e.clientX + 16, e.clientY + 12)
+      if (relationFocus !== null && idx === relationFocus) {
+        // 关系焦点：信息卡固定在标题面板下方，方便点击导航
+        showTooltip(idx, 24, 116)
+      } else {
+        showTooltip(idx, e.clientX + 16, e.clientY + 12)
+      }
       renderer.domElement.style.cursor = 'pointer'
       return
     }
   }
   if (frozen) {
     // 冻结：移开节点也保持信息卡，方便把鼠标移过去点击链接
+    hoverIdx = null
+    renderer.domElement.style.cursor = ''
+    return
+  }
+  if (relationFocus !== null) {
+    // 关系模式：悬停空白保持当前信息卡（卡片导航需要）
     hoverIdx = null
     renderer.domElement.style.cursor = ''
     return
@@ -425,6 +451,49 @@ window.addEventListener('keydown', e => {
 })
 
 // ───── 关系高亮（点击节点）：基石（青）与后继（橙） ─────
+// 关系箭头线：焦点与基石/后继之间的带箭头连线，指示方向
+const relationArrows = new THREE.Group()
+scene.add(relationArrows)
+const ARROW_LEN = 1.6    // 箭头锥体长度
+const ARROW_RADIUS = 0.4 // 箭头锥体半径
+const ARROW_AT = 0.78    // 箭头放在线的 78% 处（靠近终点但不重叠节点）
+
+function clearRelationArrows() {
+  while (relationArrows.children.length) {
+    const c = relationArrows.children[0]
+    relationArrows.remove(c)
+    const mesh = c as THREE.Mesh | THREE.Line
+    if (mesh.geometry) mesh.geometry.dispose()
+    const m = mesh.material as THREE.Material | THREE.Material[] | undefined
+    if (Array.isArray(m)) m.forEach(x => x.dispose())
+    else if (m) m.dispose()
+  }
+}
+
+function drawRelationArrow(from: THREE.Vector3, to: THREE.Vector3, color: number) {
+  const dir = new THREE.Vector3().subVectors(to, from)
+  const len = dir.length()
+  if (len < 1e-3) return
+  dir.normalize()
+  const lineGeo = new THREE.BufferGeometry().setFromPoints([from, to])
+  const lineMat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.85, fog: false })
+  relationArrows.add(new THREE.Line(lineGeo, lineMat))
+  const cone = new THREE.ConeGeometry(ARROW_RADIUS, ARROW_LEN, 8)
+  const coneMat = new THREE.MeshBasicMaterial({ color, fog: false })
+  const arrow = new THREE.Mesh(cone, coneMat)
+  arrow.position.copy(from).lerp(to, ARROW_AT)
+  arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir)
+  relationArrows.add(arrow)
+}
+
+/** 重画关系箭头线：基石 → 焦点（青），焦点 → 后继（橙） */
+function updateRelationArrows(focusIdx: number, prereqs: Set<number>, succs: Set<number>) {
+  clearRelationArrows()
+  const focusPos = placed[focusIdx].position
+  for (const p of prereqs) drawRelationArrow(placed[p].position, focusPos, 0x39cbd0)
+  for (const s of succs) drawRelationArrow(focusPos, placed[s].position, 0xffb347)
+}
+
 const IDX_BY_ID = new Map<string, number>()
 placed.forEach((p, i) => IDX_BY_ID.set(p.node.id, i))
 // 反向索引：id → 哪些节点的 prereqs 引用它（即它的后继）
@@ -477,6 +546,9 @@ function setRelation(idx: number, pushHistory = true) {
   field.setRelation(idx, prereqs, succs)
   // 只保留焦点与上下游的名字，其余名称全部隐藏，让屏幕干净
   nameLabels.setFilter(i => i === idx || prereqs.has(i) || succs.has(i))
+  // 信息卡可交互（点击导航）+ 画带箭头的连线
+  document.body.classList.add('relating')
+  updateRelationArrows(idx, prereqs, succs)
   renderBreadcrumb()
 }
 
@@ -487,6 +559,8 @@ function clearRelation() {
   relationHistory = []
   field.clearRelation()
   applyKindFilter() // 恢复 kind 筛选（field 与 nameLabels 一起恢复）
+  document.body.classList.remove('relating')
+  clearRelationArrows()
   renderBreadcrumb()
 }
 
@@ -546,6 +620,16 @@ document.getElementById('relationBreadcrumb')!.addEventListener('click', e => {
   const pos = relationHistory.indexOf(idx)
   if (pos >= 0) relationHistory = relationHistory.slice(0, pos)
   setRelation(idx, false)
+  rig.focusOn(placed[idx].position, focusDistance(placed[idx].node.importance))
+  showTooltip(idx, 24, 116)
+})
+
+// 点击信息卡里的基石/后继名：跳转到该节点
+tooltip.addEventListener('click', e => {
+  const nav = (e.target as HTMLElement).closest('.tt-nav')
+  if (!nav) return
+  const idx = Number((nav as HTMLElement).dataset.idx)
+  setRelation(idx)
   rig.focusOn(placed[idx].position, focusDistance(placed[idx].node.importance))
   showTooltip(idx, 24, 116)
 })

@@ -279,6 +279,11 @@ body {
 #tooltip.show { opacity: 1; }
 /* 冻结模式（空格开关）：信息卡可交互，方便点击维基链接 */
 body.frozen #tooltip { pointer-events: auto; }
+/* 关系模式（点击节点后）：信息卡可交互，点击基石/后继名可跳转 */
+body.relating #tooltip { pointer-events: auto; }
+/* 卡片里可点击的节点名（基石/后继导航） */
+.tt-nav { cursor: pointer; color: #7fd4ff; }
+.tt-nav:hover { text-decoration: underline; color: #fff; }
 #tooltip .tt-name { font-size: 14px; font-weight: bold; color: #fff; }
 #tooltip .tt-dim { opacity: 0.65; }
 #tooltip .tt-desc {
